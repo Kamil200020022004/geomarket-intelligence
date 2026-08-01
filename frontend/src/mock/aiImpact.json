@@ -1,0 +1,8 @@
+{
+  "event": "Nowe napięcia geopolityczne na Bliskim Wschodzie",
+  "affectedMarkets": "EUR/PLN, ropa, WIG20",
+  "riskLevel": "Wysokie",
+  "sentiment": "Negatywny",
+  "summary": "AI wskazuje, że wydarzenie może zwiększyć zmienność na rynku surowców energetycznych oraz wpłynąć na kursy walut i indeksy giełdowe.",
+  "showChart": true
+}

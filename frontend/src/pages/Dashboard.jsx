@@ -1,5 +1,6 @@
 import MarketCard from "../components/MarketCard"
 import markets from "../mock/markets.json"
+import AIImpactCard from "../components/AIImpactCard"
 
 function Dashboard() {
   return (
@@ -22,7 +23,10 @@ function Dashboard() {
                 change={market.change}
                 />
             ))}
-</section>
+        </section>
+                <section className="mt-8">
+                <AIImpactCard />
+        </section>
 
       <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
