@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Bitcoin",
+    "value": "267 540 PLN",
+    "change": "+2.45%"
+  },
+  {
+    "id": 2,
+    "name": "WIG20",
+    "value": "2 320,41",
+    "change": "+1.18%"
+  },
+  {
+    "id": 3,
+    "name": "EUR/PLN",
+    "value": "4,3120",
+    "change": "-0.28%"
+  }
+]
