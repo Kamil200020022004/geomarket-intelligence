@@ -8,8 +8,7 @@ import ChatDrawer from "./components/ChatDrawer"
 import Footer from "./components/Footer"
 
 import Dashboard from "./pages/Dashboard"
-import Markets from "./pages/Markets"
-import Bitcoin from "./pages/Bitcoin"
+import Crypto from "./pages/Crypto"
 import StockMarket from "./pages/StockMarket"
 import Macro from "./pages/Macro"
 import News from "./pages/News"
@@ -33,11 +32,10 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/rynki" element={<Markets />} />
-          <Route path="/bitcoin" element={<Bitcoin />} />
+          <Route path="/newsy" element={<News />} />
+          <Route path="/kryptowaluty" element={<Crypto />} />
           <Route path="/gielda" element={<StockMarket />} />
           <Route path="/makro" element={<Macro />} />
-          <Route path="/newsy" element={<News />} />
           <Route path="/o-projekcie" element={<AboutProject />} />
 
           {isLoggedIn && (

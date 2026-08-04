@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom"
 import {
   Home,
   Newspaper,
-  BarChart3,
   Bitcoin,
   CandlestickChart,
   Globe2,
@@ -50,19 +49,11 @@ function Navbar({ isLoggedIn, onLoginClick }) {
           </NavLink>
 
           <NavLink
-            to="/rynki"
-            className={({ isActive }) => (isActive ? activeLink : baseLink)}
-          >
-            <BarChart3 size={16} />
-            Rynki
-          </NavLink>
-
-          <NavLink
-            to="/bitcoin"
+            to="/kryptowaluty"
             className={({ isActive }) => (isActive ? activeLink : baseLink)}
           >
             <Bitcoin size={16} />
-            Bitcoin
+            Kryptowaluty
           </NavLink>
 
           <NavLink

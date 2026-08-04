@@ -4,7 +4,7 @@
     "name": "Bitcoin",
     "value": "267 540 PLN",
     "change": "+2.45%",
-    "path": "/bitcoin"
+    "path": "/kryptowaluty"
   },
   {
     "id": 2,
@@ -18,6 +18,6 @@
     "name": "EUR/PLN",
     "value": "4,3120",
     "change": "-0.28%",
-    "path": "/rynki"
+    "path": "/makro"
   }
 ]
