@@ -3,18 +3,21 @@
     "id": 1,
     "name": "Bitcoin",
     "value": "267 540 PLN",
-    "change": "+2.45%"
+    "change": "+2.45%",
+    "path": "/bitcoin"
   },
   {
     "id": 2,
     "name": "WIG20",
     "value": "2 320,41",
-    "change": "+1.18%"
+    "change": "+1.18%",
+    "path": "/gielda"
   },
   {
     "id": 3,
     "name": "EUR/PLN",
     "value": "4,3120",
-    "change": "-0.28%"
+    "change": "-0.28%",
+    "path": "/rynki"
   }
 ]
