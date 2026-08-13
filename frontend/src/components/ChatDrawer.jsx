@@ -1,5 +1,77 @@
+import { useState } from "react"
+
 function ChatDrawer({ isOpen, onClose }) {
+  const [messages, setMessages] = useState([
+    {
+      role: "model",
+      content:
+        "Cześć! Jestem asystentem AI platformy GeoMarket Intelligence. Możesz zapytać mnie o rynki, dane, wydarzenia geopolityczne lub wykresy.",
+    },
+  ])
+
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
   if (!isOpen) return null
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return
+
+    const userMessage = {
+      role: "user",
+      content: input,
+    }
+
+    const updatedMessages = [...messages, userMessage]
+
+    setMessages(updatedMessages)
+    setInput("")
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          history: updatedMessages,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Backend error")
+      }
+
+      const data = await response.json()
+
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          role: "model",
+          content: data.response,
+        },
+      ])
+    } catch (error) {
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          role: "model",
+          content:
+            "Nie udało się połączyć z backendem AI. Sprawdź, czy backend działa pod adresem http://127.0.0.1:8000.",
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleSend()
+    }
+  }
 
   return (
     <div className="fixed bottom-24 right-6 z-50 flex h-[620px] w-[380px] flex-col overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950 shadow-2xl shadow-cyan-950/50">
@@ -16,23 +88,17 @@ function ChatDrawer({ isOpen, onClose }) {
             </p>
 
             <p className="text-xs text-slate-400">
-              Aktywny teraz
+              Połączony z backendem AI
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-cyan-400">
-          <button className="transition hover:text-cyan-300">
-            —
-          </button>
-
-          <button
-            onClick={onClose}
-            className="text-xl transition hover:text-cyan-300"
-          >
-            ×
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="text-xl text-cyan-400 transition hover:text-cyan-300"
+        >
+          ×
+        </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto bg-slate-950 px-4 py-5">
@@ -42,31 +108,28 @@ function ChatDrawer({ isOpen, onClose }) {
           </span>
         </div>
 
-        <div className="max-w-[80%] rounded-3xl rounded-bl-md bg-slate-800 px-4 py-3 text-sm text-slate-100">
-          Cześć! Jestem asystentem AI platformy GeoMarket Intelligence.
-        </div>
+        {messages.map((message, index) => {
+          const isUser = message.role === "user"
 
-        <div className="ml-auto max-w-[80%] rounded-3xl rounded-br-md bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950">
-          Jak napięcia geopolityczne mogą wpłynąć na EUR/PLN?
-        </div>
+          return (
+            <div
+              key={index}
+              className={`max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-6 ${
+                isUser
+                  ? "ml-auto rounded-br-md bg-cyan-400 font-medium text-slate-950"
+                  : "rounded-bl-md bg-slate-800 text-slate-100"
+              }`}
+            >
+              {message.content}
+            </div>
+          )
+        })}
 
-        <div className="max-w-[85%] rounded-3xl rounded-bl-md bg-slate-800 px-4 py-3 text-sm leading-6 text-slate-100">
-          Na podstawie danych AI może wskazać potencjalny wpływ wydarzenia na waluty,
-          surowce oraz indeksy giełdowe. W przyszłości odpowiedź będzie generowana
-          przez backend i model AI.
-        </div>
-
-        <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs text-slate-300">
-          <p className="font-semibold text-cyan-400">
-            Przykładowe możliwości:
-          </p>
-
-          <div className="mt-2 space-y-2">
-            <p>• analiza wpływu wydarzeń na rynek</p>
-            <p>• wyjaśnianie wykresów</p>
-            <p>• pytania o Bitcoin, giełdę i makroekonomię</p>
+        {isLoading && (
+          <div className="max-w-[80%] rounded-3xl rounded-bl-md bg-slate-800 px-4 py-3 text-sm text-slate-400">
+            AI analizuje odpowiedź...
           </div>
-        </div>
+        )}
       </div>
 
       <div className="border-t border-slate-800 bg-slate-900 p-3">
@@ -77,11 +140,18 @@ function ChatDrawer({ isOpen, onClose }) {
 
           <input
             type="text"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Aa"
             className="h-10 flex-1 rounded-full border border-slate-700 bg-slate-800 px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400"
           />
 
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400 text-slate-950 transition hover:bg-cyan-300">
+          <button
+            onClick={handleSend}
+            disabled={isLoading}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400 text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+          >
             ➤
           </button>
         </div>

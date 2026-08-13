@@ -1,0 +1,15 @@
+{
+  "symbol": "AAPL",
+  "company": "Apple Inc.",
+  "sector": "Technology",
+  "industry": "Consumer Electronics",
+  "current_price": 313.33,
+  "previous_close": 312.40997,
+  "day_high": 314.81,
+  "day_low": 310.74,
+  "market_cap": 4572794322944,
+  "pe_ratio": 35.97359,
+  "currency": "USD",
+  "history": [
+    {
+      "Date": 
