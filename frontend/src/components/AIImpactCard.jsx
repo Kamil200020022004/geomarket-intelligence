@@ -1,6 +1,70 @@
-import aiImpact from "../mock/aiImpact.json"
+import { useEffect, useState } from "react"
+import { getStockAIImpact } from "../api/aiApi"
 
 function AIImpactCard() {
+  const [aiImpact, setAiImpact] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    async function loadAIImpact() {
+      try {
+        const result = await getStockAIImpact()
+        setAiImpact(result)
+      } catch (error) {
+        console.error(error)
+        setError(true)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadAIImpact()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="relative overflow-hidden rounded-3xl border border-cyan-500/30 bg-slate-900/90 p-6 backdrop-blur">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl"></div>
+
+        <div className="relative">
+          <p className="mb-3 inline-flex rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1 text-sm text-cyan-400">
+            AI Market Impact Engine
+          </p>
+
+          <h3 className="text-2xl font-bold">
+            Analiza AI wpływu wydarzeń
+          </h3>
+
+          <p className="mt-4 text-sm text-slate-400">
+            AI analizuje dane z backendu...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !aiImpact) {
+    return (
+      <div className="relative overflow-hidden rounded-3xl border border-red-500/30 bg-slate-900/90 p-6 backdrop-blur">
+        <div className="relative">
+          <p className="mb-3 inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1 text-sm text-red-400">
+            AI Market Impact Engine
+          </p>
+
+          <h3 className="text-2xl font-bold">
+            Analiza AI wpływu wydarzeń
+          </h3>
+
+          <p className="mt-4 text-sm text-slate-400">
+            Nie udało się pobrać analizy AI z backendu. Sprawdź, czy backend działa pod adresem http://127.0.0.1:8000.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative overflow-hidden rounded-3xl border border-cyan-500/30 bg-slate-900/90 p-6 backdrop-blur">
       <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl"></div>
@@ -86,6 +150,7 @@ function AIImpactCard() {
                 <h4 className="font-semibold">
                   Wizualizacja scenariusza
                 </h4>
+
                 <p className="text-sm text-slate-500">
                   AI uznało, że dla tej analizy warto pokazać porównanie danych.
                 </p>
@@ -101,7 +166,9 @@ function AIImpactCard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold">Wariant bazowy</p>
-                    <p className="text-sm text-slate-500">Aktualny trend instrumentu</p>
+                    <p className="text-sm text-slate-500">
+                      Aktualny trend instrumentu
+                    </p>
                   </div>
 
                   <span className="text-sm text-slate-500">Historical</span>
@@ -116,7 +183,9 @@ function AIImpactCard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold">Scenariusz AI</p>
-                    <p className="text-sm text-slate-500">Możliwa zmiana po wydarzeniu</p>
+                    <p className="text-sm text-slate-500">
+                      Możliwa zmiana po wydarzeniu
+                    </p>
                   </div>
 
                   <span className="text-sm text-cyan-400">AI forecast</span>
