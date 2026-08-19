@@ -33,8 +33,24 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/newsy" element={<News />} />
-          <Route path="/kryptowaluty" element={<Crypto />} />
-          <Route path="/gielda" element={<StockMarket />} />
+         <Route
+  path="/kryptowaluty"
+  element={
+    <Crypto
+      isLoggedIn={isLoggedIn}
+      onLoginRequired={() => setIsLoginOpen(true)}
+    />
+  }
+/>
+         <Route
+  path="/gielda"
+  element={
+    <StockMarket
+      isLoggedIn={isLoggedIn}
+      onLoginRequired={() => setIsLoginOpen(true)}
+    />
+  }
+/>
           <Route path="/makro" element={<Macro />} />
           <Route path="/o-projekcie" element={<AboutProject />} />
 

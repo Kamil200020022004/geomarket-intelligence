@@ -2,6 +2,7 @@ import MarketCard from "../components/MarketCard"
 import AIImpactCard from "../components/AIImpactCard"
 import markets from "../mock/markets.json"
 
+
 function Dashboard() {
   return (
     <main className="px-8 py-8">
@@ -184,109 +185,7 @@ function Dashboard() {
         <AIImpactCard />
       </section>
 
-      <section className="animate-fade-up mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">
-                Główna wizualizacja rynku
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Miejsce na interaktywny wykres danych finansowych.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-sm text-cyan-400">
-              Live data later
-            </span>
-          </div>
-
-          <div className="mt-6 flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/80 text-slate-500">
-            Tu będzie działający wykres
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">
-                Najnowsze sygnały rynkowe
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Miejsce na newsy oraz analizę wpływu wydarzeń.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-400">
-              News feed
-            </span>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-xl ring-1 ring-red-500/20">
-                  🌍
-                </div>
-
-                <div>
-                  <p className="text-sm text-cyan-400">GEOPOLITYKA</p>
-
-                  <p className="mt-1 font-semibold">
-                    Napięcia geopolityczne mogą wpływać na rynek surowców.
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-400">
-                    AI później określi możliwy wpływ wydarzenia na konkretne aktywa.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-xl ring-1 ring-amber-500/20">
-                  📊
-                </div>
-
-                <div>
-                  <p className="text-sm text-cyan-400">MAKRO</p>
-
-                  <p className="mt-1 font-semibold">
-                    Dane o inflacji mogą zwiększyć zmienność kursów walut.
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-400">
-                    Miejsce na dane dostarczone z backendu oraz analizę AI.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-xl ring-1 ring-cyan-500/20">
-                  🤖
-                </div>
-
-                <div>
-                  <p className="text-sm text-cyan-400">AI SIGNAL</p>
-
-                  <p className="mt-1 font-semibold">
-                    System wykrył potencjalny wpływ wydarzeń na EUR/PLN.
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-400">
-                    W przyszłości ten blok będzie zasilany przez moduł AI.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
     </main>
   )
 }
