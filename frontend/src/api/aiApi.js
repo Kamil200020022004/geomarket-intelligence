@@ -12,12 +12,40 @@ export async function getStockAIImpact() {
   return apiGet("/stock/ai-impact")
 }
 
+export async function getMacroRawData() {
+  return apiGet("/stock/macro/raw")
+}
+
+export async function getMacroAnalysis() {
+  return apiGet("/stock/macro/analysis")
+}
+
+export async function getStockData(symbol) {
+  return apiGet(`/stock/${symbol}`)
+}
+
+export async function getStockAnalysis(symbol) {
+  return apiGet(`/stock/analyze/${symbol}`)
+}
+
+export async function getStockHistory(symbol) {
+  return apiGet(`/stock/history/${symbol}`)
+}
+
+export async function getStockChart(symbol) {
+  return apiGet(`/stock/chart/${symbol}`)
+}
+
 export async function getStockNews(symbol) {
   return apiGet(`/stock/news/${symbol}`)
 }
 
 export async function getNewsSentiment(symbol) {
   return apiGet(`/stock/news/${symbol}/sentiment`)
+}
+
+export async function getStockReport(symbol) {
+  return apiGet(`/stock/report/${symbol}`)
 }
 
 export async function getTopCryptocurrencies() {
@@ -89,50 +117,4 @@ export async function getStockQuoteFromInternet(symbol) {
 export async function getStockHistoryFromInternet(symbol) {
   const data = await getStockChartFromInternet(symbol, "1mo", "1d")
   return data.history
-}
-
-export async function getInternetNews() {
-  const response = await fetch(
-    "https://api.freenewsapi.ai/api/search?query=finance%20markets%20economy%20geopolitics&language=en&page_size=8"
-  )
-
-  if (!response.ok) {
-    throw new Error("Internet news API error")
-  }
-
-  const data = await response.json()
-  const articles = data.articles || data.data || data.results || []
-
-  return articles.map((article, index) => ({
-    id: `internet-${index + 1}`,
-    title: article.title || "Brak tytułu",
-    summary:
-      article.description ||
-      article.summary ||
-      article.snippet ||
-      "Brak krótkiego opisu artykułu.",
-    sourceName:
-      article.source?.name ||
-      article.source ||
-      article.publisher ||
-      "External source",
-    sourceUrl: article.url || article.link || article.source_url || "#",
-    date:
-      article.published_at || article.publishedAt || article.date
-        ? new Date(
-            article.published_at || article.publishedAt || article.date
-          ).toLocaleString("pl-PL")
-        : "Brak daty",
-    category: "Źródło zewnętrzne",
-    dataOrigin: "Informacje zewnętrzne",
-    impact: "Średni",
-    sentiment: "Neutralny",
-    affectedMarkets: ["Giełda", "Waluty", "Surowce"],
-    aiAnalysis:
-      "Miejsce na analizę AI wygenerowaną na podstawie treści newsa, danych rynkowych oraz informacji dostarczonych przez warstwę danych projektu.",
-  }))
-}
-
-export async function getMacroRawData() {
-  return apiGet("/stock/macro/raw")
 }
