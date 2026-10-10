@@ -183,9 +183,14 @@ function generateHistory(baseValue, change) {
   return points
 }
 
-function Macro() {
+function Macro({ isLoggedIn, onLoginRequired }) {
   const [items, setItems] = useState([])
   const [selectedItem, setSelectedItem] = useState(null)
+  const [favorites, setFavorites] = useState(() => {
+    const savedFavorites = localStorage.getItem("macroFavorites")
+    return savedFavorites ? JSON.parse(savedFavorites) : []
+  })
+
   const [chartRange, setChartRange] = useState("1M")
   const [hoveredPoint, setHoveredPoint] = useState(null)
 
@@ -195,13 +200,48 @@ function Macro() {
       history: generateHistory(item.value, item.change),
     }))
 
+    const selectedSymbolFromUrl = new URLSearchParams(window.location.search).get("symbol")
+    const initialSelectedItem =
+      preparedItems.find((item) => item.symbol === selectedSymbolFromUrl) ||
+      preparedItems[0]
+
     setItems(preparedItems)
-    setSelectedItem(preparedItems[0])
+    setSelectedItem(initialSelectedItem)
   }, [])
 
   useEffect(() => {
     setHoveredPoint(null)
   }, [selectedItem, chartRange])
+
+  const handleAddToFavorites = (item) => {
+    if (!isLoggedIn) {
+      alert("Aby dodać wskaźnik do ulubionych, zaloguj się.")
+      onLoginRequired()
+      return
+    }
+
+    const alreadyExists = favorites.some(
+      (favorite) => favorite.symbol === item.symbol
+    )
+
+    if (alreadyExists) return
+
+    const favoriteItem = {
+      symbol: item.symbol,
+      name: item.name,
+      category: item.category,
+      value: item.value,
+      unit: item.unit,
+    }
+
+    const updatedFavorites = [...favorites, favoriteItem]
+    setFavorites(updatedFavorites)
+    localStorage.setItem("macroFavorites", JSON.stringify(updatedFavorites))
+  }
+
+  const isFavorite = (symbol) => {
+    return favorites.some((favorite) => favorite.symbol === symbol)
+  }
 
   const formatValue = (value, unit) => {
     if (value === null || value === undefined) return "-"
@@ -233,6 +273,7 @@ function Macro() {
     if (value === null || value === undefined) return "-"
 
     const prefix = value > 0 ? "+" : ""
+
     return `${prefix}${value.toFixed(2)}%`
   }
 
@@ -261,6 +302,7 @@ function Macro() {
 
     if (chartRange === "1D") return history.slice(-12)
     if (chartRange === "1W") return history.slice(-24)
+
     return history
   }
 
@@ -322,32 +364,44 @@ function Macro() {
             Makro
           </h2>
 
-          <p className="mt-4 max-w-4xl text-slate-400">
-            Zakładka Makro prezentuje najważniejsze dane makroekonomiczne:
-            kursy walut, inflację, stopy procentowe, PKB oraz wybrane surowce.
-            Dane są obecnie przykładowe, ale struktura została przygotowana tak,
-            aby później można było łatwo podmienić je na dane przygotowane przez Sebastiana.
+          <p className="mt-4 max-w-4xl leading-7 text-slate-300">
+            Zakładka Makro prezentuje najważniejsze dane makroekonomiczne,
+            takie jak kursy walut, inflacja, stopy procentowe, PKB oraz
+            wybrane surowce. Dane są przedstawione w formie tabeli, kart
+            informacyjnych oraz wykresu wybranego wskaźnika.
           </p>
 
           <div className="mt-6 grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-violet-400">Waluty</p>
-              <p className="mt-2 text-sm text-slate-400">
-                EUR/PLN, USD/PLN, CHF/PLN, GBP/PLN oraz EUR/USD.
+              <p className="text-sm font-semibold text-violet-400">
+                Waluty
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Kursy najważniejszych par walutowych, takich jak EUR/PLN,
+                USD/PLN, CHF/PLN, GBP/PLN oraz EUR/USD.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-violet-400">Inflacja i stopy</p>
-              <p className="mt-2 text-sm text-slate-400">
-                CPI, stopa NBP, stopa FED oraz stopa EBC.
+              <p className="text-sm font-semibold text-violet-400">
+                Inflacja i stopy
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Wskaźniki pokazujące poziom inflacji oraz decyzje banków
+                centralnych dotyczące kosztu pieniądza.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-violet-400">PKB i surowce</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Dane gospodarcze oraz ceny ropy, złota i gazu.
+              <p className="text-sm font-semibold text-violet-400">
+                PKB i surowce
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Dane gospodarcze oraz ceny wybranych surowców, takich jak ropa,
+                złoto i gaz.
               </p>
             </div>
           </div>
@@ -369,14 +423,15 @@ function Macro() {
               </div>
 
               <span className="rounded-full bg-violet-500/10 px-4 py-1 text-sm text-violet-400">
-                Mock macro data
+                Macro data
               </span>
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-slate-800">
-              <table className="w-full min-w-[950px] border-collapse text-sm">
+              <table className="w-full min-w-[1050px] border-collapse text-sm">
                 <thead className="bg-slate-950 text-slate-400">
                   <tr>
+                    <th className="px-4 py-4 text-left">☆</th>
                     <th className="px-4 py-4 text-left">#</th>
                     <th className="px-4 py-4 text-left">Wskaźnik</th>
                     <th className="px-4 py-4 text-left">Kategoria</th>
@@ -398,6 +453,23 @@ function Macro() {
                           isSelected ? "bg-violet-500/10" : "bg-slate-950/40"
                         }`}
                       >
+                        <td className="px-4 py-4">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              handleAddToFavorites(item)
+                            }}
+                            className={`text-xl transition ${
+                              isFavorite(item.symbol)
+                                ? "text-yellow-400"
+                                : "text-slate-500 hover:text-yellow-400"
+                            }`}
+                            title="Dodaj do ulubionych"
+                          >
+                            {isFavorite(item.symbol) ? "★" : "☆"}
+                          </button>
+                        </td>
+
                         <td className="px-4 py-4 text-slate-400">
                           {index + 1}
                         </td>
@@ -442,18 +514,31 @@ function Macro() {
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] self-start overflow-y-auto rounded-3xl border border-violet-500/30 bg-slate-900/90 p-6">
             {selectedItem && (
               <>
-                <div>
-                  <p className="text-sm text-violet-400">
-                    Wybrany wskaźnik
-                  </p>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-violet-400">
+                      Wybrany wskaźnik
+                    </p>
 
-                  <h3 className="mt-1 text-2xl font-bold">
-                    {selectedItem.name}
-                  </h3>
+                    <h3 className="mt-1 text-2xl font-bold">
+                      {selectedItem.name}
+                    </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    {selectedItem.symbol} · {selectedItem.category}
-                  </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {selectedItem.symbol} · {selectedItem.category}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleAddToFavorites(selectedItem)}
+                    className={`rounded-full px-4 py-1 text-sm transition ${
+                      isFavorite(selectedItem.symbol)
+                        ? "bg-yellow-400/10 text-yellow-400"
+                        : "bg-slate-950 text-slate-400 hover:text-yellow-400"
+                    }`}
+                  >
+                    {isFavorite(selectedItem.symbol) ? "★ W ulubionych" : "☆ Dodaj"}
+                  </button>
                 </div>
 
                 <p className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm leading-6 text-slate-400">
@@ -462,14 +547,20 @@ function Macro() {
 
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-500">Wartość</p>
+                    <p className="text-sm text-slate-500">
+                      Wartość
+                    </p>
+
                     <p className="mt-2 text-xl font-bold text-white">
                       {formatValue(selectedItem.value, selectedItem.unit)}
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                    <p className="text-sm text-slate-500">Zmiana</p>
+                    <p className="text-sm text-slate-500">
+                      Zmiana
+                    </p>
+
                     <p className="mt-2 text-xl font-bold">
                       <ChangeValue value={selectedItem.change} />
                     </p>
@@ -484,7 +575,7 @@ function Macro() {
                       </h4>
 
                       <p className="text-sm text-slate-500">
-                        Przykładowy wykres pokazujący zmianę wybranego wskaźnika.
+                        Wykres prezentujący zmianę wybranego wskaźnika w czasie.
                       </p>
                     </div>
 
@@ -507,21 +598,30 @@ function Macro() {
 
                   <div className="mb-4 grid grid-cols-3 gap-3">
                     <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-                      <p className="text-xs text-slate-500">Minimum</p>
+                      <p className="text-xs text-slate-500">
+                        Minimum
+                      </p>
+
                       <p className="mt-1 font-semibold text-white">
                         {formatValue(minValue, selectedItem.unit)}
                       </p>
                     </div>
 
                     <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-                      <p className="text-xs text-slate-500">Aktualnie</p>
+                      <p className="text-xs text-slate-500">
+                        Aktualnie
+                      </p>
+
                       <p className="mt-1 font-semibold text-white">
                         {formatValue(selectedItem.value, selectedItem.unit)}
                       </p>
                     </div>
 
                     <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-                      <p className="text-xs text-slate-500">Maksimum</p>
+                      <p className="text-xs text-slate-500">
+                        Maksimum
+                      </p>
+
                       <p className="mt-1 font-semibold text-white">
                         {formatValue(maxValue, selectedItem.unit)}
                       </p>

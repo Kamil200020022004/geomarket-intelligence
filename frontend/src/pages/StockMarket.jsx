@@ -194,6 +194,7 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
     if (value === null || value === undefined) return "-"
 
     const prefix = value > 0 ? "+" : ""
+
     return `${prefix}${value.toFixed(2)}%`
   }
 
@@ -222,14 +223,17 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
 
     if (chartRange === "1D") return history.slice(-12)
     if (chartRange === "1W") return history.slice(-24)
+
     return history
   }
 
   const historyPoints = getVisibleHistory()
+
   const minPrice =
     historyPoints.length > 0
       ? Math.min(...historyPoints.map((point) => point.price))
       : 0
+
   const maxPrice =
     historyPoints.length > 0
       ? Math.max(...historyPoints.map((point) => point.price))
@@ -281,33 +285,44 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
             Giełda
           </h2>
 
-          <p className="mt-4 max-w-4xl text-slate-400">
-            Zakładka prezentuje przykładową listę 100 instrumentów giełdowych:
-            50 spółek polskich oraz 50 spółek zagranicznych. Użytkownik może
-            sprawdzić cenę, zmianę procentową, wolumen, kapitalizację oraz wykres
-            wybranej spółki. W późniejszym etapie dane mogą zostać podmienione na
-            dane przygotowane przez Sebastiana.
+          <p className="mt-4 max-w-4xl leading-7 text-slate-300">
+            Zakładka prezentuje wybrane instrumenty giełdowe z rynku
+            polskiego i zagranicznego. Użytkownik może sprawdzić cenę,
+            zmianę procentową, wolumen, kapitalizację oraz wykres
+            historyczny wybranego instrumentu.
           </p>
 
           <div className="mt-6 grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-emerald-400">Cena</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Aktualna lub przykładowa cena wybranego instrumentu.
+              <p className="text-sm font-semibold text-emerald-400">
+                Cena
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Aktualna wartość instrumentu wraz ze zmianą procentową
+                względem poprzedniego okresu.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-emerald-400">Wolumen</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Liczba akcji będących przedmiotem obrotu w danym okresie.
+              <p className="text-sm font-semibold text-emerald-400">
+                Wolumen
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Informacja o aktywności handlowej i liczbie jednostek
+                będących przedmiotem obrotu.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-              <p className="text-sm text-emerald-400">Rynek</p>
-              <p className="mt-2 text-sm text-slate-400">
-                Informacja, czy instrument należy do rynku polskiego czy zagranicznego.
+              <p className="text-sm font-semibold text-emerald-400">
+                Rynek
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Oznaczenie rynku, z którego pochodzi instrument: polskiego
+                lub zagranicznego.
               </p>
             </div>
           </div>
@@ -324,12 +339,12 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-400">
-                  50 spółek polskich i 50 zagranicznych w jednej tabeli.
+                  Zestawienie instrumentów z rynku polskiego i zagranicznego.
                 </p>
               </div>
 
               <span className="rounded-full bg-emerald-500/10 px-4 py-1 text-sm text-emerald-400">
-                Mock market data
+                Market data
               </span>
             </div>
 
@@ -496,7 +511,7 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
                       </h4>
 
                       <p className="text-sm text-slate-500">
-                        Przykładowy wykres pokazujący kierunek zmian ceny.
+                        Wykres prezentujący kierunek zmian ceny wybranego instrumentu.
                       </p>
                     </div>
 

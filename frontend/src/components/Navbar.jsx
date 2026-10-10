@@ -8,10 +8,10 @@ import {
   Heart,
   Info,
   LogIn,
-  User,
+  LogOut,
 } from "lucide-react"
 
-function Navbar({ isLoggedIn, onLoginClick }) {
+function Navbar({ isLoggedIn, onLoginClick, onLogout }) {
   const baseLink =
     "flex items-center gap-2 rounded-full px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800 hover:text-cyan-400"
 
@@ -82,16 +82,6 @@ function Navbar({ isLoggedIn, onLoginClick }) {
             </NavLink>
           )}
 
-          {isLoggedIn && (
-            <NavLink
-              to="/profil"
-              className={({ isActive }) => (isActive ? activeLink : baseLink)}
-            >
-              <User size={16} />
-              Profil
-            </NavLink>
-          )}
-
           <NavLink
             to="/o-projekcie"
             className={({ isActive }) => (isActive ? activeLink : baseLink)}
@@ -102,8 +92,11 @@ function Navbar({ isLoggedIn, onLoginClick }) {
         </nav>
 
         {isLoggedIn ? (
-          <button className="flex items-center gap-2 rounded-full border border-slate-700 px-5 py-2 text-sm text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400">
-            <User size={16} />
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 rounded-full border border-slate-700 px-5 py-2 text-sm text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
+          >
+            <LogOut size={16} />
             Wyloguj
           </button>
         ) : (
