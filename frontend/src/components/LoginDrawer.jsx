@@ -1,76 +1,200 @@
 import { useState } from "react"
 
-function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+
+const INITIAL_FORM = {
+  name: "",
+  email: "",
+  password: "",
+  repeatPassword: "",
+}
+
+async function authRequest(endpoint, body) {
+  let response
+
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+  } catch {
+    throw new Error(
+      "Nie można połączyć się z serwerem. Sprawdź, czy backend FastAPI jest uruchomiony."
+    )
+  }
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Nieprawidłowy adres e-mail lub hasło.")
+    }
+
+    if (response.status === 409) {
+      throw new Error("Konto z podanym adresem e-mail już istnieje.")
+    }
+
+    if (response.status === 422) {
+      throw new Error(
+        "Nieprawidłowe dane formularza. Sprawdź poprawność wprowadzonych informacji."
+      )
+    }
+
+    const detail =
+      typeof data.detail === "string"
+        ? data.detail
+        : typeof data.message === "string"
+          ? data.message
+          : null
+
+    throw new Error(
+      detail || `Wystąpił błąd serwera (${response.status}).`
+    )
+  }
+
+  return data
+}
+
+function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
   const [mode, setMode] = useState("login")
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    repeatPassword: "",
-  })
+  const [formData, setFormData] = useState(INITIAL_FORM)
+
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [loading, setLoading] = useState(false)
 
   if (!isOpen) return null
 
   function handleChange(event) {
     const { name, value } = event.target
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
     }))
 
     setError("")
+    setSuccess("")
   }
 
-  function handleLogin(event) {
+  function switchMode(nextMode) {
+    if (loading) return
+
+    setMode(nextMode)
+    setError("")
+    setSuccess("")
+    setFormData(INITIAL_FORM)
+  }
+
+  function handleClose() {
+    if (loading) return
+
+    setMode("login")
+    setError("")
+    setSuccess("")
+    setFormData(INITIAL_FORM)
+
+    onClose()
+  }
+
+  async function handleLogin(event) {
     event.preventDefault()
 
-    if (!formData.email || !formData.password) {
-      setError("Uzupełnij e-mail oraz hasło.")
+    if (loading) return
+
+    const email = formData.email.trim().toLowerCase()
+    const password = formData.password
+
+    if (!email || !password) {
+      setError("Uzupełnij adres e-mail oraz hasło.")
       return
     }
 
-    onDemoLogin()
+    setLoading(true)
+    setError("")
+    setSuccess("")
+
+    try {
+      const data = await authRequest("/auth/login", {
+        email,
+        password,
+      })
+
+      // App.jsx zapisuje token i sprawdza konto przez /auth/me.
+      await onLoginSuccess(data)
+
+      setFormData(INITIAL_FORM)
+      setMode("login")
+    } catch (requestError) {
+      setError(
+        requestError.message || "Nie udało się zalogować."
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function handleRegister(event) {
+  async function handleRegister(event) {
     event.preventDefault()
 
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.repeatPassword
-    ) {
+    if (loading) return
+
+    const name = formData.name.trim()
+    const email = formData.email.trim().toLowerCase()
+    const password = formData.password
+
+    if (!name || !email || !password || !formData.repeatPassword) {
       setError("Uzupełnij wszystkie pola rejestracji.")
       return
     }
 
-    if (formData.password !== formData.repeatPassword) {
-      setError("Hasła nie są takie same.")
+    if (name.length < 2) {
+      setError("Imię powinno mieć co najmniej 2 znaki.")
       return
     }
 
-    onDemoLogin()
-  }
-
-  function handleResetPassword(event) {
-    event.preventDefault()
-
-    if (!formData.email) {
-      setError("Podaj adres e-mail do resetu hasła.")
+    if (password.length < 8) {
+      setError("Hasło musi zawierać co najmniej 8 znaków.")
       return
     }
 
-    setError("")
-    alert("Link do resetu hasła został wysłany na podany adres e-mail.")
-    setMode("login")
-  }
+    if (password !== formData.repeatPassword) {
+      setError("Podane hasła nie są identyczne.")
+      return
+    }
 
-  function switchMode(nextMode) {
-    setMode(nextMode)
+    setLoading(true)
     setError("")
+    setSuccess("")
+
+    try {
+      await authRequest("/auth/register", {
+        name,
+        email,
+        password,
+      })
+
+      setMode("login")
+
+      setFormData({
+        ...INITIAL_FORM,
+        email,
+      })
+
+      setSuccess(
+        "Konto zostało utworzone. Możesz teraz się zalogować."
+      )
+    } catch (requestError) {
+      setError(
+        requestError.message || "Nie udało się utworzyć konta."
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   const title =
@@ -84,8 +208,17 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
     mode === "login"
       ? "Zaloguj się, aby uzyskać dostęp do ulubionych elementów."
       : mode === "register"
-        ? "Utwórz konto, aby zapisywać ulubione instrumenty giełdowe, kryptowaluty i wskaźniki makroekonomiczne."
-        : "Podaj adres e-mail, aby otrzymać link do resetu hasła."
+        ? "Utwórz konto, aby zapisywać instrumenty giełdowe, kryptowaluty i wskaźniki makroekonomiczne."
+        : "Odzyskiwanie hasła będzie dostępne po uruchomieniu odpowiedniej funkcji backendu."
+
+  const inputClass =
+    "mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400 disabled:opacity-50"
+
+  const submitClass =
+    "w-full rounded-xl bg-cyan-400 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+
+  const secondaryButtonClass =
+    "w-full rounded-xl border border-slate-700 py-3 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
 
   return (
     <div className="fixed inset-0 z-40 bg-black/60">
@@ -96,8 +229,11 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
           </h2>
 
           <button
-            onClick={onClose}
-            className="rounded-lg border border-slate-700 px-3 py-1 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
+            type="button"
+            onClick={handleClose}
+            disabled={loading}
+            className="rounded-lg border border-slate-700 px-3 py-1 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400 disabled:opacity-50"
+            aria-label="Zamknij panel"
           >
             X
           </button>
@@ -109,7 +245,9 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
 
         <div className="mt-6 flex rounded-full border border-slate-800 bg-slate-900 p-1">
           <button
+            type="button"
             onClick={() => switchMode("login")}
+            disabled={loading}
             className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
               mode === "login"
                 ? "bg-cyan-400 text-slate-950"
@@ -120,7 +258,9 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
           </button>
 
           <button
+            type="button"
             onClick={() => switchMode("register")}
+            disabled={loading}
             className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
               mode === "register"
                 ? "bg-cyan-400 text-slate-950"
@@ -131,7 +271,9 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
           </button>
 
           <button
+            type="button"
             onClick={() => switchMode("reset")}
+            disabled={loading}
             className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
               mode === "reset"
                 ? "bg-cyan-400 text-slate-950"
@@ -143,54 +285,82 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
         </div>
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div
+            role="alert"
+            className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+          >
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div
+            role="status"
+            className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"
+          >
+            {success}
           </div>
         )}
 
         {mode === "login" && (
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="login-email"
+                className="text-sm text-slate-300"
+              >
                 E-mail
               </label>
 
               <input
+                id="login-email"
                 name="email"
                 type="email"
+                autoComplete="email"
+                required
+                disabled={loading}
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="jan.kowalski@email.com"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                className={inputClass}
               />
             </div>
 
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="login-password"
+                className="text-sm text-slate-300"
+              >
                 Hasło
               </label>
 
               <input
+                id="login-password"
                 name="password"
                 type="password"
+                autoComplete="current-password"
+                required
+                disabled={loading}
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                className={inputClass}
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-cyan-400 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+              disabled={loading}
+              className={submitClass}
             >
-              Zaloguj się
+              {loading ? "Logowanie..." : "Zaloguj się"}
             </button>
 
             <button
               type="button"
+              disabled={loading}
               onClick={() => switchMode("reset")}
-              className="w-full rounded-xl border border-slate-700 py-3 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
+              className={secondaryButtonClass}
             >
               Odzyskaj hasło
             </button>
@@ -200,124 +370,143 @@ function LoginDrawer({ isOpen, onClose, onDemoLogin }) {
         {mode === "register" && (
           <form onSubmit={handleRegister} className="mt-6 space-y-4">
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="register-name"
+                className="text-sm text-slate-300"
+              >
                 Imię
               </label>
 
               <input
+                id="register-name"
                 name="name"
                 type="text"
+                autoComplete="given-name"
+                required
+                minLength={2}
+                disabled={loading}
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Kamil"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                className={inputClass}
               />
             </div>
 
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="register-email"
+                className="text-sm text-slate-300"
+              >
                 E-mail
               </label>
 
               <input
+                id="register-email"
                 name="email"
                 type="email"
+                autoComplete="email"
+                required
+                disabled={loading}
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="jan.kowalski@email.com"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                className={inputClass}
               />
             </div>
 
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="register-password"
+                className="text-sm text-slate-300"
+              >
                 Hasło
               </label>
 
               <input
+                id="register-password"
                 name="password"
                 type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                disabled={loading}
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                placeholder="Minimum 8 znaków"
+                className={inputClass}
               />
             </div>
 
             <div>
-              <label className="text-sm text-slate-300">
+              <label
+                htmlFor="register-repeat-password"
+                className="text-sm text-slate-300"
+              >
                 Powtórz hasło
               </label>
 
               <input
+                id="register-repeat-password"
                 name="repeatPassword"
                 type="password"
+                autoComplete="new-password"
+                required
+                disabled={loading}
                 value={formData.repeatPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
+                className={inputClass}
               />
             </div>
 
+            <p className="text-xs leading-5 text-slate-500">
+              Hasło powinno mieć co najmniej 8 znaków.
+            </p>
+
             <button
               type="submit"
-              className="w-full rounded-xl bg-cyan-400 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+              disabled={loading}
+              className={submitClass}
             >
-              Utwórz konto
+              {loading ? "Tworzenie konta..." : "Utwórz konto"}
             </button>
           </form>
         )}
 
         {mode === "reset" && (
-          <form onSubmit={handleResetPassword} className="mt-6 space-y-4">
-            <div>
-              <label className="text-sm text-slate-300">
-                E-mail
-              </label>
+          <div className="mt-6 space-y-4">
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+              <h3 className="font-semibold text-amber-300">
+                Resetowanie hasła
+              </h3>
 
-              <input
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="jan.kowalski@email.com"
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
-              />
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Ta funkcja nie jest jeszcze obsługiwana przez
+                tymczasowy backend Excel. Nie wysyłamy obecnie
+                wiadomości z linkiem resetującym.
+              </p>
             </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-cyan-400 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
-            >
-              Wyślij link resetujący
-            </button>
 
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className="w-full rounded-xl border border-slate-700 py-3 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
+              className={secondaryButtonClass}
             >
               Wróć do logowania
             </button>
-          </form>
+          </div>
         )}
 
         <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <p className="text-sm font-semibold text-cyan-400">
-            Tryb testowy
+            Konto użytkownika
           </p>
 
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            Do czasu podpięcia backendu logowanie działa lokalnie. Po integracji
-            z API logowanie będzie obsługiwane przez token JWT.
+            Rejestracja i logowanie są obsługiwane przez backend
+            GeoMarket Intelligence. Dane kont użytkowników są
+            przechowywane w tymczasowej bazie Excel.
           </p>
-
-          <button
-            onClick={onDemoLogin}
-            className="mt-4 w-full rounded-xl border border-cyan-500/30 bg-cyan-500/10 py-3 font-semibold text-cyan-300 transition hover:bg-cyan-500/20"
-          >
-            Zaloguj testowo
-          </button>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import Navbar from "./components/Navbar"
@@ -15,36 +15,132 @@ import News from "./pages/News"
 import AboutProject from "./pages/AboutProject"
 import Favorites from "./pages/Favorites"
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
-
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user")
-    return savedUser ? JSON.parse(savedUser) : null
-  })
+  const [user, setUser] = useState(null)
+  const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   const isLoggedIn = Boolean(user)
 
-  function handleDemoLogin() {
-    const demoUser = {
-      id: 1,
-      name: "Kamil",
-      email: "kamil@test.pl",
+  useEffect(() => {
+    let cancelled = false
+
+    async function restoreSession() {
+      const token = localStorage.getItem("token")
+
+      if (!token) {
+        setIsCheckingSession(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Sesja jest nieważna")
+        }
+
+        const data = await response.json()
+
+        if (!cancelled) {
+          setUser(data.user || data)
+        }
+      } catch {
+        if (!cancelled) {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          setUser(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCheckingSession(false)
+        }
+      }
     }
 
-    localStorage.setItem("user", JSON.stringify(demoUser))
-    localStorage.setItem("token", "demo-jwt-token")
+    restoreSession()
 
-    setUser(demoUser)
-    setIsLoginOpen(false)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleLoginSuccess(loginData) {
+    const token = loginData.access_token || loginData.token
+
+    if (!token) {
+      throw new Error("Backend nie zwrócił tokenu logowania.")
+    }
+
+    localStorage.setItem("token", token)
+
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Nie udało się pobrać danych użytkownika.")
+      }
+
+      const data = await response.json()
+      const loggedInUser = data.user || data
+
+      localStorage.setItem("user", JSON.stringify(loggedInUser))
+
+      setUser(loggedInUser)
+      setIsLoginOpen(false)
+    } catch (error) {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      setUser(null)
+      throw error
+    }
   }
 
-  function handleLogout() {
-    localStorage.removeItem("user")
-    localStorage.removeItem("token")
+  async function handleLogout() {
+    const token = localStorage.getItem("token")
 
-    setUser(null)
+    try {
+      if (token) {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Błąd wylogowania:", error)
+    } finally {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+
+      setUser(null)
+    }
+  }
+
+  if (isCheckingSession) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-cyan-400" />
+
+          <p className="text-sm text-slate-400">
+            Sprawdzanie sesji użytkownika...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -117,7 +213,7 @@ function App() {
         <LoginDrawer
           isOpen={isLoginOpen}
           onClose={() => setIsLoginOpen(false)}
-          onDemoLogin={handleDemoLogin}
+          onLoginSuccess={handleLoginSuccess}
         />
       </div>
     </BrowserRouter>

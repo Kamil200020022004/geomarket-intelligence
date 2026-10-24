@@ -149,3 +149,14 @@ vite.config.ts.timestamp-*
 node_modules/
 __pycache__/
 **/__pycache__/
+
+# Dane kont użytkowników
+backend-ai/data/geomarket_users.xlsx
+backend-ai/data/.auth_secret
+
+# Lokalne środowisko
+.env
+**/.env
+.venv/
+**/.venv/
+node_modules/
