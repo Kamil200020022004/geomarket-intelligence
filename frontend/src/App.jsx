@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
@@ -15,15 +16,21 @@ import News from "./pages/News"
 import AboutProject from "./pages/AboutProject"
 import Favorites from "./pages/Favorites"
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+
   const [user, setUser] = useState(null)
   const [isCheckingSession, setIsCheckingSession] = useState(true)
 
   const isLoggedIn = Boolean(user)
+
+  // ==========================================================
+  // PRZYWRACANIE SESJI PO ODŚWIEŻENIU STRONY
+  // ==========================================================
 
   useEffect(() => {
     let cancelled = false
@@ -48,14 +55,22 @@ function App() {
         }
 
         const data = await response.json()
+        const currentUser = data.user || data
 
         if (!cancelled) {
-          setUser(data.user || data)
+          setUser(currentUser)
+          localStorage.setItem(
+            "user",
+            JSON.stringify(currentUser)
+          )
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
+          console.error("Nie udało się przywrócić sesji:", error)
+
           localStorage.removeItem("token")
           localStorage.removeItem("user")
+
           setUser(null)
         }
       } finally {
@@ -72,11 +87,17 @@ function App() {
     }
   }, [])
 
+  // ==========================================================
+  // LOGOWANIE
+  // ==========================================================
+
   async function handleLoginSuccess(loginData) {
     const token = loginData.access_token || loginData.token
 
     if (!token) {
-      throw new Error("Backend nie zwrócił tokenu logowania.")
+      throw new Error(
+        "Backend nie zwrócił tokenu uwierzytelniania."
+      )
     }
 
     localStorage.setItem("token", token)
@@ -89,23 +110,43 @@ function App() {
       })
 
       if (!response.ok) {
-        throw new Error("Nie udało się pobrać danych użytkownika.")
+        throw new Error(
+          "Nie udało się pobrać danych użytkownika."
+        )
       }
 
       const data = await response.json()
       const loggedInUser = data.user || data
 
-      localStorage.setItem("user", JSON.stringify(loggedInUser))
+      if (
+        loggedInUser.id === null ||
+        loggedInUser.id === undefined
+      ) {
+        throw new Error(
+          "Backend nie zwrócił identyfikatora użytkownika."
+        )
+      }
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(loggedInUser)
+      )
 
       setUser(loggedInUser)
       setIsLoginOpen(false)
     } catch (error) {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
+
       setUser(null)
+
       throw error
     }
   }
+
+  // ==========================================================
+  // WYLOGOWANIE
+  // ==========================================================
 
   async function handleLogout() {
     const token = localStorage.getItem("token")
@@ -126,8 +167,13 @@ function App() {
       localStorage.removeItem("user")
 
       setUser(null)
+      setIsLoginOpen(false)
     }
   }
+
+  // ==========================================================
+  // SPRAWDZANIE SESJI
+  // ==========================================================
 
   if (isCheckingSession) {
     return (
@@ -143,9 +189,16 @@ function App() {
     )
   }
 
+  // ==========================================================
+  // GŁÓWNA APLIKACJA
+  // ==========================================================
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.16),_transparent_32%),linear-gradient(135deg,_#020617_0%,_#0f172a_45%,_#020617_100%)] text-white">
+
+        {/* NAWIGACJA */}
+
         <Navbar
           isLoggedIn={isLoggedIn}
           user={user}
@@ -153,15 +206,24 @@ function App() {
           onLogout={handleLogout}
         />
 
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
+        {/* ZAKŁADKI */}
 
-          <Route path="/newsy" element={<News />} />
+        <Routes>
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="/newsy"
+            element={<News />}
+          />
 
           <Route
             path="/kryptowaluty"
             element={
               <Crypto
+                user={user}
                 isLoggedIn={isLoggedIn}
                 onLoginRequired={() => setIsLoginOpen(true)}
               />
@@ -172,6 +234,7 @@ function App() {
             path="/gielda"
             element={
               <StockMarket
+                user={user}
                 isLoggedIn={isLoggedIn}
                 onLoginRequired={() => setIsLoginOpen(true)}
               />
@@ -182,6 +245,7 @@ function App() {
             path="/makro"
             element={
               <Macro
+                user={user}
                 isLoggedIn={isLoggedIn}
                 onLoginRequired={() => setIsLoginOpen(true)}
               />
@@ -192,23 +256,37 @@ function App() {
             path="/ulubione"
             element={
               <Favorites
+                user={user}
                 isLoggedIn={isLoggedIn}
                 onLoginRequired={() => setIsLoginOpen(true)}
               />
             }
           />
 
-          <Route path="/o-projekcie" element={<AboutProject />} />
+          <Route
+            path="/o-projekcie"
+            element={<AboutProject />}
+          />
         </Routes>
+
+        {/* STOPKA */}
 
         <Footer />
 
-        <AIBotButton onClick={() => setIsChatOpen(true)} />
+        {/* PRZYCISK CHATBOTA AI */}
+
+        <AIBotButton
+          onClick={() => setIsChatOpen(true)}
+        />
+
+        {/* PANEL CHATBOTA AI */}
 
         <ChatDrawer
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
         />
+
+        {/* PANEL LOGOWANIA I REJESTRACJI */}
 
         <LoginDrawer
           isOpen={isLoginOpen}

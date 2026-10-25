@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react"
 import { getTopCryptocurrencies } from "../api/aiApi"
+import useFavorites from "../hooks/useFavorites"
 
-function Crypto({ isLoggedIn, onLoginRequired }) {
+function Crypto({ user, isLoggedIn, onLoginRequired }) {
   const [coins, setCoins] = useState([])
   const [selectedCoin, setSelectedCoin] = useState(null)
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("cryptoFavorites")
-    return savedFavorites ? JSON.parse(savedFavorites) : []
-  })
+  const {
+    isFavorite,
+    toggleFavorite,
+    error: favoritesError,
+  } = useFavorites("crypto", user?.id)
 
   const [chartRange, setChartRange] = useState("7D")
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -35,24 +37,17 @@ function Crypto({ isLoggedIn, onLoginRequired }) {
     setHoveredPoint(null)
   }, [selectedCoin, chartRange])
 
-  const handleAddToFavorites = (coin) => {
-    if (!isLoggedIn) {
-      alert("Aby dodać kryptowalutę do ulubionych, zaloguj się.")
+  async function handleAddToFavorites(coin) {
+    if (!isLoggedIn || user?.id === null || user?.id === undefined) {
       onLoginRequired()
       return
     }
 
-    const alreadyExists = favorites.some((favorite) => favorite.id === coin.id)
-
-    if (alreadyExists) return
-
-    const updatedFavorites = [...favorites, coin]
-    setFavorites(updatedFavorites)
-    localStorage.setItem("cryptoFavorites", JSON.stringify(updatedFavorites))
-  }
-
-  const isFavorite = (coinId) => {
-    return favorites.some((favorite) => favorite.id === coinId)
+    try {
+      await toggleFavorite(coin)
+    } catch (error) {
+      console.error("Nie udało się zmienić ulubionych kryptowalut:", error)
+    }
   }
 
   const formatCurrency = (value) => {
@@ -150,6 +145,11 @@ function Crypto({ isLoggedIn, onLoginRequired }) {
 
   return (
     <main className="px-8 py-8">
+      {favoritesError && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {favoritesError}
+        </div>
+      )}
       <section className="relative overflow-hidden rounded-3xl border border-orange-500/30 bg-slate-900/90 p-8">
         <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-orange-500/10 blur-3xl"></div>
 
@@ -266,7 +266,7 @@ function Crypto({ isLoggedIn, onLoginRequired }) {
                                   ? "text-yellow-400"
                                   : "text-slate-500 hover:text-yellow-400"
                               }`}
-                              title="Dodaj do ulubionych"
+                              title={isFavorite(coin.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
                             >
                               {isFavorite(coin.id) ? "★" : "☆"}
                             </button>

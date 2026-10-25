@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import useFavorites from "../hooks/useFavorites"
 
 const MACRO_DATA = [
   // Waluty
@@ -183,13 +184,14 @@ function generateHistory(baseValue, change) {
   return points
 }
 
-function Macro({ isLoggedIn, onLoginRequired }) {
+function Macro({ user, isLoggedIn, onLoginRequired }) {
   const [items, setItems] = useState([])
   const [selectedItem, setSelectedItem] = useState(null)
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("macroFavorites")
-    return savedFavorites ? JSON.parse(savedFavorites) : []
-  })
+  const {
+    isFavorite,
+    toggleFavorite,
+    error: favoritesError,
+  } = useFavorites("macro", user?.id)
 
   const [chartRange, setChartRange] = useState("1M")
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -213,34 +215,23 @@ function Macro({ isLoggedIn, onLoginRequired }) {
     setHoveredPoint(null)
   }, [selectedItem, chartRange])
 
-  const handleAddToFavorites = (item) => {
-    if (!isLoggedIn) {
-      alert("Aby dodać wskaźnik do ulubionych, zaloguj się.")
+  async function handleAddToFavorites(item) {
+    if (!isLoggedIn || user?.id === null || user?.id === undefined) {
       onLoginRequired()
       return
     }
 
-    const alreadyExists = favorites.some(
-      (favorite) => favorite.symbol === item.symbol
-    )
-
-    if (alreadyExists) return
-
-    const favoriteItem = {
-      symbol: item.symbol,
-      name: item.name,
-      category: item.category,
-      value: item.value,
-      unit: item.unit,
+    try {
+      await toggleFavorite({
+        symbol: item.symbol,
+        name: item.name,
+        category: item.category,
+        value: item.value,
+        unit: item.unit,
+      })
+    } catch (error) {
+      console.error("Nie udało się zmienić ulubionych Makro:", error)
     }
-
-    const updatedFavorites = [...favorites, favoriteItem]
-    setFavorites(updatedFavorites)
-    localStorage.setItem("macroFavorites", JSON.stringify(updatedFavorites))
-  }
-
-  const isFavorite = (symbol) => {
-    return favorites.some((favorite) => favorite.symbol === symbol)
   }
 
   const formatValue = (value, unit) => {
@@ -352,6 +343,11 @@ function Macro({ isLoggedIn, onLoginRequired }) {
 
   return (
     <main className="px-8 py-8">
+      {favoritesError && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {favoritesError}
+        </div>
+      )}
       <section className="relative overflow-hidden rounded-3xl border border-violet-500/30 bg-slate-900/90 p-8">
         <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-violet-500/10 blur-3xl"></div>
 
@@ -464,7 +460,7 @@ function Macro({ isLoggedIn, onLoginRequired }) {
                                 ? "text-yellow-400"
                                 : "text-slate-500 hover:text-yellow-400"
                             }`}
-                            title="Dodaj do ulubionych"
+                            title={isFavorite(item.symbol) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
                           >
                             {isFavorite(item.symbol) ? "★" : "☆"}
                           </button>

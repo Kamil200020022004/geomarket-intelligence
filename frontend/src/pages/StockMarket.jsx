@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import useFavorites from "../hooks/useFavorites"
 
 const STOCKS = [
   // 50 zagranicznych
@@ -124,13 +125,14 @@ function generateHistory(basePrice, change) {
   return points
 }
 
-function StockMarket({ isLoggedIn, onLoginRequired }) {
+function StockMarket({ user, isLoggedIn, onLoginRequired }) {
   const [stocks, setStocks] = useState([])
   const [selectedStock, setSelectedStock] = useState(null)
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("stockFavorites")
-    return savedFavorites ? JSON.parse(savedFavorites) : []
-  })
+  const {
+    isFavorite,
+    toggleFavorite,
+    error: favoritesError,
+  } = useFavorites("stock", user?.id)
 
   const [chartRange, setChartRange] = useState("1M")
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -149,26 +151,17 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
     setHoveredPoint(null)
   }, [selectedStock, chartRange])
 
-  const handleAddToFavorites = (stock) => {
-    if (!isLoggedIn) {
-      alert("Aby dodać spółkę do ulubionych, zaloguj się.")
+  async function handleAddToFavorites(stock) {
+    if (!isLoggedIn || user?.id === null || user?.id === undefined) {
       onLoginRequired()
       return
     }
 
-    const alreadyExists = favorites.some(
-      (favorite) => favorite.symbol === stock.symbol
-    )
-
-    if (alreadyExists) return
-
-    const updatedFavorites = [...favorites, stock]
-    setFavorites(updatedFavorites)
-    localStorage.setItem("stockFavorites", JSON.stringify(updatedFavorites))
-  }
-
-  const isFavorite = (symbol) => {
-    return favorites.some((favorite) => favorite.symbol === symbol)
+    try {
+      await toggleFavorite(stock)
+    } catch (error) {
+      console.error("Nie udało się zmienić ulubionych:", error)
+    }
   }
 
   const formatCurrency = (value, market) => {
@@ -273,6 +266,11 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
 
   return (
     <main className="px-8 py-8">
+      {favoritesError && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {favoritesError}
+        </div>
+      )}
       <section className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-slate-900/90 p-8">
         <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl"></div>
 
@@ -386,7 +384,7 @@ function StockMarket({ isLoggedIn, onLoginRequired }) {
                                 ? "text-yellow-400"
                                 : "text-slate-500 hover:text-yellow-400"
                             }`}
-                            title="Dodaj do ulubionych"
+                            title={isFavorite(stock.symbol) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
                           >
                             {isFavorite(stock.symbol) ? "★" : "☆"}
                           </button>
