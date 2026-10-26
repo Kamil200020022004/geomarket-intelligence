@@ -15,6 +15,7 @@ import Macro from "./pages/Macro"
 import News from "./pages/News"
 import AboutProject from "./pages/AboutProject"
 import Favorites from "./pages/Favorites"
+import ResetPassword from "./pages/ResetPassword"
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
@@ -59,6 +60,7 @@ function App() {
 
         if (!cancelled) {
           setUser(currentUser)
+
           localStorage.setItem(
             "user",
             JSON.stringify(currentUser)
@@ -66,7 +68,10 @@ function App() {
         }
       } catch (error) {
         if (!cancelled) {
-          console.error("Nie udało się przywrócić sesji:", error)
+          console.error(
+            "Nie udało się przywrócić sesji:",
+            error
+          )
 
           localStorage.removeItem("token")
           localStorage.removeItem("user")
@@ -134,6 +139,7 @@ function App() {
 
       setUser(loggedInUser)
       setIsLoginOpen(false)
+
     } catch (error) {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
@@ -162,6 +168,7 @@ function App() {
       }
     } catch (error) {
       console.error("Błąd wylogowania:", error)
+
     } finally {
       localStorage.removeItem("token")
       localStorage.removeItem("user")
@@ -179,11 +186,13 @@ function App() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
         <div className="text-center">
+
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-cyan-400" />
 
           <p className="text-sm text-slate-400">
             Sprawdzanie sesji użytkownika...
           </p>
+
         </div>
       </div>
     )
@@ -209,15 +218,22 @@ function App() {
         {/* ZAKŁADKI */}
 
         <Routes>
+
+          {/* DASHBOARD */}
+
           <Route
             path="/"
             element={<Dashboard />}
           />
 
+          {/* NEWSY */}
+
           <Route
             path="/newsy"
             element={<News />}
           />
+
+          {/* KRYPTOWALUTY */}
 
           <Route
             path="/kryptowaluty"
@@ -230,6 +246,8 @@ function App() {
             }
           />
 
+          {/* GIEŁDA */}
+
           <Route
             path="/gielda"
             element={
@@ -240,6 +258,8 @@ function App() {
               />
             }
           />
+
+          {/* MAKRO */}
 
           <Route
             path="/makro"
@@ -252,6 +272,8 @@ function App() {
             }
           />
 
+          {/* ULUBIONE */}
+
           <Route
             path="/ulubione"
             element={
@@ -263,10 +285,20 @@ function App() {
             }
           />
 
+          {/* O PROJEKCIE */}
+
           <Route
             path="/o-projekcie"
             element={<AboutProject />}
           />
+
+          {/* ODZYSKIWANIE HASŁA */}
+
+          <Route
+            path="/reset-password"
+            element={<ResetPassword />}
+          />
+
         </Routes>
 
         {/* STOPKA */}
@@ -293,6 +325,7 @@ function App() {
           onClose={() => setIsLoginOpen(false)}
           onLoginSuccess={handleLoginSuccess}
         />
+
       </div>
     </BrowserRouter>
   )

@@ -1,3 +1,4 @@
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,6 +10,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api.router import router
 from app.auth_excel import router as excel_auth_router
+from app.password_reset import router as password_reset_router
 from app.config.settings import settings
 from app.services.scheduler import start_scheduler
 
@@ -17,7 +19,6 @@ from app.services.scheduler import start_scheduler
 # RATE LIMITER
 # ============================================================
 
-# Ograniczanie liczby zapytań na podstawie adresu IP użytkownika.
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -27,9 +28,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Uruchomienie schedulera odpowiedzialnego za pobieranie danych.
     start_scheduler()
-
     yield
 
 
@@ -60,9 +59,6 @@ app.add_exception_handler(
 # CORS – POŁĄCZENIE Z REACT
 # ============================================================
 
-# Zezwalamy na połączenia z lokalnego frontendu React.
-# W przyszłości należy dodać adres wdrożonej aplikacji.
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -79,17 +75,11 @@ app.add_middleware(
 # ROUTERY API
 # ============================================================
 
-# Istniejące endpointy Patryka:
-# /chat
-# /stock/...
-# /crypto/...
-# /health
+# Istniejące endpointy Patryka
 app.include_router(router)
 
-
-# Tymczasowy system logowania z bazą Excel:
-# /auth/register
-# /auth/login
-# /auth/me
-# /auth/logout
+# Logowanie i rejestracja przez Excel
 app.include_router(excel_auth_router)
+
+# Odzyskiwanie hasła przez e-mail
+app.include_router(password_reset_router)
