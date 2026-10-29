@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+<<<<<<< HEAD
 from app.services.finance_service import get_stock
 
 router = APIRouter(prefix="/crypto", tags=["Crypto"])
@@ -42,6 +43,11 @@ def crypto_table():
             })
     return results
 
+=======
+
+router = APIRouter(prefix="/crypto", tags=["Crypto"])
+
+>>>>>>> 342c8bc2f5e88c4a64fc8af2597c3637556bb1a6
 
 @router.get(
     "/ai-impact",
@@ -50,7 +56,11 @@ def crypto_table():
 )
 def crypto_ai_impact():
     return {
+<<<<<<< HEAD
         "event": "Nowe regulacje dotyczące rynku kryptowalut",
+=======
+        "event": "Nowe regulacje SEC dotyczące rynku kryptowalut",
+>>>>>>> 342c8bc2f5e88c4a64fc8af2597c3637556bb1a6
         "affectedMarkets": "BTC, ETH, USDT",
         "riskLevel": "Średnie",
         "sentiment": "Neutralny",
@@ -61,6 +71,7 @@ def crypto_ai_impact():
 
 @router.get(
     "/{symbol}",
+<<<<<<< HEAD
     summary="Podstawowe dane pojedynczej kryptowaluty",
     description="Zwraca aktualną cenę i zmianę dla wybranej kryptowaluty."
 )
@@ -86,3 +97,15 @@ def crypto_data(symbol: str):
             "change": "0.00%",
             "category": "crypto"
         }
+=======
+    summary="Podstawowe dane kryptowaluty",
+    description="Zwraca aktualną cenę i bazowe metryki dla wybranej kryptowaluty."
+)
+def crypto_data(symbol: str):
+    return {
+        "name": symbol.upper(),
+        "value": "267 540 PLN",
+        "change": "+2.45%",
+        "category": "crypto"
+    }
+>>>>>>> 342c8bc2f5e88c4a64fc8af2597c3637556bb1a6

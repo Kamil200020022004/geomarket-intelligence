@@ -101,6 +101,7 @@ def process_macro_to_silver_and_gold(indicator_name: str, df_macro: pd.DataFrame
     with open(os.path.join(gold_folder, f"{indicator_name.lower()}_summary.json"), "w", encoding="utf-8") as f:
         json.dump(gold_summary, f, indent=2, default=_json_serializer)
 
+<<<<<<< HEAD
     return gold_summary
 def save_news_to_silver(category: str, articles: list[dict]) -> str:
     """Warstwa Silver: Przechowywanie zdeduplikowanych i ustrukturyzowanych newsów."""
@@ -168,3 +169,6 @@ def get_news_gold_analysis(category: str) -> dict | None:
             return json.load(f)
     except Exception:
         return None
+=======
+    return gold_summary
+>>>>>>> 342c8bc2f5e88c4a64fc8af2597c3637556bb1a6

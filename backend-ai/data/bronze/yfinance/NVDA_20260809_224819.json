@@ -1,0 +1,15 @@
+{
+  "symbol": "NVDA",
+  "company": "NVIDIA Corporation",
+  "sector": "Technology",
+  "industry": "Semiconductors",
+  "current_price": 223.96,
+  "previous_close": 218.99,
+  "day_high": 224.76,
+  "day_low": 220.66,
+  "market_cap": 5424535306240,
+  "pe_ratio": 34.244648,
+  "currency": "USD",
+  "history": [
+    {
+      "Date": 
