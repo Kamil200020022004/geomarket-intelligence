@@ -1,0 +1,65 @@
+# ==============================================================================
+# ŚRODOWISKO WIRTUALNE (nie wrzucaj gigabajtów bibliotek z .venv)
+# ==============================================================================
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==============================================================================
+# TAJNE DANE I KLUCZE API (ABSOLUTNY ZAKAZ WRZUCANIA NA GITHUBA!)
+# ==============================================================================
+.env
+*.env
+.env.*
+!.env.example
+
+# ==============================================================================
+# PLIKI TYMCZASOWE I CACHE PYTHONA
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# ==============================================================================
+# ARCHIWA I KOPIE ZAPASOWE (wycięcie zipów z drzewka projektu)
+# ==============================================================================
+*.zip
+*.7z
+*.rar
+*.tar.gz
+*.gz
+
+# ==============================================================================
+# DATA LAKE (blokada surowych zrzutów danych - nie zaśmiecamy repozytorium)
+# ==============================================================================
+data/bronze/
+data/silver/
+# Zachowaj strukturę katalogów data, jeśli używasz .gitkeep
+!data/.gitkeep
+
+# ==============================================================================
+# EDYTORY I SYSTEM OPERACYJNY (śmieci z Windows / Mac / VS Code)
+# ==============================================================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.DS_Store?
+._*
+
+# ==============================================================================
+# LOGI I BAZY DANYCH
+# ==============================================================================
+*.log
+*.sqlite3
+*.db
