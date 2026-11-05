@@ -10,7 +10,8 @@ from app.services.finance_service import get_stock, get_history
 from app.services.analysis_service import (
     analyze_stock, 
     analyze_news_sentiment, 
-    generate_full_investment_report
+    generate_full_investment_report,
+    generate_dynamic_ai_impact
 )
 from app.services.chart_service import get_chart
 from app.services.news_service import latest_news
@@ -29,17 +30,10 @@ TOP_STOCKS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA"]
     response_model=AIImpactResponse, 
     tags=["AI Analysis"],
     summary="Wpływ wydarzeń na rynki (AI Impact)",
-    description="Zwraca przeanalizowany wpływ ważnego wydarzenia geopolitycznego na wybrane rynki, ocenia ryzyko i sentyment. Wykorzystuje model Gemini."
+    description="Dynamicznie analizuje wpływ bieżących wydarzeń rynkowo-geopolitycznych za pomocą modelu Gemini."
 )
 def ai_impact():
-    return {
-        "event": "Nowe napięcia geopolityczne na Bliskim Wschodzie",
-        "affectedMarkets": "EUR/PLN, ropa, WIG20",
-        "riskLevel": "Wysokie",
-        "sentiment": "Negatywny",
-        "summary": "AI wskazuje, że wydarzenie może zwiększyć zmienność na rynku surowców energetycznych oraz wpłynąć na kursy walut i indeksy giełdowe.",
-        "showChart": True
-    }
+    return generate_dynamic_ai_impact("geopolityka")
 
 
 @router.get(
@@ -47,7 +41,7 @@ def ai_impact():
     response_model=MacroAnalysisResponse, 
     tags=["AI Analysis"],
     summary="Analiza makroekonomiczna (Gemini)",
-    description="Pobiera najnowsze dane FRED (PKB, inflacja, stopy), przekazuje je do Gemini i zwraca syntetyczną ocenę stanu gospodarki."
+    description="Pobiera najnowsze dane FRED (PKB, inflacja r/r, stopy), przekazuje je do Gemini i zwraca syntetyczną ocenę stanu gospodarki."
 )
 def macro_analysis():
     return {
@@ -60,7 +54,7 @@ def macro_analysis():
     "/analyze/{symbol}", 
     tags=["AI Analysis"],
     summary="Analiza wybranej spółki (Gemini)",
-    description="Pobiera zagregowane wskaźniki spółki z Data Lake i ocenia jej kondycję fundamentalną za pomocą AI."
+    description="Pobiera wskaźniki spółki i ocenia jej kondycję fundamentalną za pomocą AI (zgodnie z zasadą bez porad inwestycyjnych)."
 )
 def analyze(symbol: str):
     return {
@@ -73,7 +67,7 @@ def analyze(symbol: str):
     response_model=NewsSentimentResponse, 
     tags=["AI Analysis"],
     summary="Sentyment najnowszych wiadomości",
-    description="Pobiera nagłówki prasowe z NewsAPI, a AI ocenia ich wydźwięk rynkowy (pozytywny, negatywny lub neutralny)."
+    description="Pobiera nagłówki prasowe z NewsAPI/RSS, a AI ocenia ich wydźwięk rynkowy (pozytywny, negatywny lub neutralny)."
 )
 def news_sentiment(symbol: str):
     return analyze_news_sentiment(symbol)
@@ -83,7 +77,7 @@ def news_sentiment(symbol: str):
     "/report/{symbol}", 
     tags=["AI Analysis"],
     summary="Pełny raport inwestycyjny",
-    description="Generuje kompleksowy raport inwestycyjny, łącząc dane rynkowe, makroekonomię i wiadomości przy użyciu modelu Gemini."
+    description="Generuje zwięzły raport analityczny łącząc dane giełdowe, makroekonomię i newsy przy użyciu modelu Gemini z pamięcią podręczną cache."
 )
 def report(symbol: str):
     return {
@@ -98,7 +92,7 @@ def report(symbol: str):
     "/macro/raw", 
     tags=["Macroeconomics"],
     summary="Surowe wskaźniki gospodarcze (FRED)",
-    description="Zwraca najnowsze wskaźniki makroekonomiczne z warstwy Data Lake bez angażowania modelu AI."
+    description="Zwraca najnowsze wskaźniki makroekonomiczne (dynamika PKB, inflacja r/r, stopy FED) z warstwy Data Lake."
 )
 def macro_raw():
     return get_current_macro_summary()
@@ -111,7 +105,7 @@ def macro_raw():
     "/overview/table",
     tags=["Market Data"],
     summary="Lista spółek do głównej tabeli giełdowej",
-    description="Zwraca zbiorcze zestawienie spółek technologicznych pod tabelę frontendu w jednym zapytaniu."
+    description="Zwraca zbiorcze zestawienie spółek technologicznych pod tabelę frontendu w jednym zapytaniu HTTP."
 )
 def stock_table():
     overview = []
@@ -157,13 +151,13 @@ def stock(symbol: str):
 
 
 # ---------------------------------------------------------
-# 4. MARKET NEWS (Wiadomości z NewsAPI i tłumaczenie)
+# 4. MARKET NEWS (Wiadomości z NewsAPI / RSS)
 # ---------------------------------------------------------
 @router.get(
     "/news/{symbol}", 
     response_model=NewsResponse, 
     tags=["Market News"],
-    summary="Najnowsze artykuły z NewsAPI",
+    summary="Najnowsze artykuły z NewsAPI / RSS",
     description="Zwraca listę nagłówków i odnośników do artykułów dla podanej kategorii lub spółki."
 )
 def news(symbol: str):

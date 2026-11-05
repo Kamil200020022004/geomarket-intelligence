@@ -160,3 +160,4 @@ backend-ai/data/.auth_secret
 .venv/
 **/.venv/
 node_modules/
+caly_kod_backend_ai.txt
