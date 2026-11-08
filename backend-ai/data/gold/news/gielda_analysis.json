@@ -1,0 +1,54 @@
+{
+  "category": "stocks",
+  "generatedAt": "2026-11-08T12:31:25Z",
+  "updated_at": "2026-11-08T12:31:25Z",
+  "summary": "Przegląd wiadomości gospodarczych i społecznych wskazuje na rosnącą presję regulacyjną na globalne podmioty technologiczne oraz istotne zróżnicowanie warunków ekonomicznych i pracy w Europie. Wydarzenia te mogą wpłynąć na stabilność wybranych sektorów giełdowych.",
+  "sentiment": "negative",
+  "market_impact": "Zaostrzenie unijnych przepisów wobec platform społecznościowych oraz czynniki makroekonomiczne mogą zwiększyć zmienność notowań spółek technologicznych.",
+  "uncertainty": "medium",
+  "source_signature": [
+    "stocks-694737c4",
+    "stocks-56f4756f",
+    "stocks-b722a2cb",
+    "stocks-e7f5891a",
+    "stocks-35d19484",
+    "stocks-20e4981f"
+  ],
+  "analyses": [
+    {
+      "id": "stocks-analysis-001",
+      "title": "Regulacyjna presja Komisji Europejskiej na sektor technologiczny",
+      "summary": "Komisja Europejska uznała, że spersonalizowany, niekończący się strumień wideo na platformie TikTok narusza unijne prawo. Algorytmy firmy są oceniane jako potencjalnie szkodliwe dla zdrowia psychicznego użytkowników.",
+      "affectedMarkets": [
+        "Sektor technologiczny",
+        "Spółki social media"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Możliwe wprowadzenie kar finansowych lub konieczność modyfikacji algorytmów przez platformy społecznościowe działające w Unii Europejskiej.",
+      "market_impact": "Możliwe wprowadzenie kar finansowych lub konieczność modyfikacji algorytmów przez platformy społecznościowe działające w Unii Europejskiej.",
+      "sourceArticleIds": [
+        "stocks-e7f5891a"
+      ]
+    },
+    {
+      "id": "stocks-analysis-002",
+      "title": "Zróżnicowanie kosztów pracy i uwarunkowania makroekonomiczne w Europie",
+      "summary": "Analiza kosztów jednej godziny pracy w Niemczech wskazuje na duże różnice regionalne pomiędzy landami o profilu usługowym a regionami turystycznymi, co wpływa na lokalną konkurencyjność.",
+      "affectedMarkets": [
+        "Rynek pracy w UE",
+        "Obligacje skarbowe",
+        "Sektor usługowy"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Zróżnicowanie kosztów pracy może wpływać na decyzje lokalizacyjne przedsiębiorstw oraz marże operacyjne firm działających w różnych regionach Niemiec.",
+      "market_impact": "Zróżnicowanie kosztów pracy może wpływać na decyzje lokalizacyjne przedsiębiorstw oraz marże operacyjne firm działających w różnych regionach Niemiec.",
+      "sourceArticleIds": [
+        "stocks-694737c4"
+      ]
+    }
+  ]
+}

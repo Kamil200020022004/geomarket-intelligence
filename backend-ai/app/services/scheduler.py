@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.finance_service import get_stock
 from app.services.macro_service import get_current_macro_summary
@@ -10,14 +11,13 @@ CATEGORIES_TO_SYNC = [
     "kryptowaluty",
     "geopolityka",
     "polska_gospodarka",
-    "swiatowe_rynki"
+    "swiatowe_rynki",
 ]
 
 
 def update_news_cache():
-    """Cykliczne pobieranie wiadomości do Data Lake (0 tokenów Gemini)."""
+    """Cykliczne pobieranie wiadomości do Data Lake w tle."""
     print("🔄 [APScheduler] Pobieranie świeżych newsów do Data Lake...")
-    # Import lokalny zapobiega cyklicznym importom przy starcie
     from app.services.news_service import fetch_and_process_category
     for cat in CATEGORIES_TO_SYNC:
         try:
@@ -39,15 +39,29 @@ def update_market_cache():
 
 
 def start_scheduler():
-    # Odświeżanie notowań co 60 minut
-    scheduler.add_job(update_market_cache, "interval", minutes=60)
-    # Odświeżanie newsów co 15 minut (wymaganie Kamila)
-    scheduler.add_job(update_news_cache, "interval", minutes=15)
-    
+    if scheduler.running:
+        return
+
+    scheduler.add_job(
+        update_market_cache,
+        "interval",
+        minutes=60,
+        id="market_cache_job",
+        replace_existing=True,
+        max_instances=1,
+    )
+    scheduler.add_job(
+        update_news_cache,
+        "interval",
+        minutes=15,
+        id="news_cache_job",
+        replace_existing=True,
+        max_instances=1,
+        next_run_time=datetime.now() + timedelta(seconds=3),
+    )
     scheduler.start()
 
-    # Jednorazowe wstępne napełnienie bazy przy starcie
-    try:
-        update_news_cache()
-    except Exception:
-        pass
+
+def stop_scheduler():
+    if scheduler.running:
+        scheduler.shutdown(wait=False)
