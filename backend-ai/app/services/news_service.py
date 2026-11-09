@@ -2,6 +2,7 @@ import hashlib
 import html
 import json
 import logging
+import os
 import re
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
@@ -23,6 +24,48 @@ from app.services.data_lake_service import (
 
 logger = logging.getLogger("news_service")
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+# Vercel uruchamia FastAPI jako funkcję serverless, której katalog aplikacji
+# jest tylko do odczytu. Lokalne pliki Data Lake nie są trwałym magazynem.
+IS_VERCEL = bool(os.environ.get("VERCEL"))
+
+
+def _read_silver_safe(category: str, limit: int) -> list[dict]:
+    if IS_VERCEL:
+        return []
+    try:
+        return get_news_from_silver(category, limit=limit)
+    except (OSError, ValueError) as exc:
+        logger.warning("Nie można odczytać cache Silver (%s): %s", category, exc)
+        return []
+
+
+def _read_gold_safe(category: str) -> dict | None:
+    if IS_VERCEL:
+        return None
+    try:
+        return get_news_gold_analysis(category)
+    except (OSError, ValueError) as exc:
+        logger.warning("Nie można odczytać cache Gold (%s): %s", category, exc)
+        return None
+
+
+def _write_silver_safe(category: str, articles: list[dict]) -> None:
+    if IS_VERCEL or not articles:
+        return
+    try:
+        save_news_to_silver(category, articles)
+    except OSError as exc:
+        logger.warning("Nie można zapisać wiadomości Silver (%s): %s", category, exc)
+
+
+def _write_gold_safe(category: str, payload: dict) -> None:
+    if IS_VERCEL:
+        return
+    try:
+        save_news_gold_analysis(category, payload)
+    except OSError as exc:
+        logger.warning("Nie można zapisać analizy Gold (%s): %s", category, exc)
 
 FRONTEND_TO_INTERNAL_CATEGORY = {
     "stocks": "gielda",
@@ -170,7 +213,7 @@ def _is_relevant(article: dict, internal_cat: str) -> bool:
 
 
 def _valid_cached_articles(internal_cat: str, limit: int) -> list[dict]:
-    articles = get_news_from_silver(internal_cat, limit=max(limit, 50))
+    articles = _read_silver_safe(internal_cat, limit=max(limit, 50))
     articles = [a for a in articles if _is_relevant(a, internal_cat)]
     articles.sort(key=lambda a: a.get("published_at", ""), reverse=True)
     return articles[:limit]
@@ -384,8 +427,7 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
     all_articles = [a for a in all_articles if _is_relevant(a, internal_cat)]
     all_articles.sort(key=lambda x: x.get("published_at", ""), reverse=True)
 
-    if all_articles:
-        save_news_to_silver(internal_cat, all_articles)
+    _write_silver_safe(internal_cat, all_articles)
 
     return all_articles
 
@@ -444,7 +486,7 @@ def latest_news(symbol: str) -> NewsResponse:
             articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)]
     except ValueError:
         clean_sym = symbol.strip().upper()
-        articles = get_news_from_silver(clean_sym.lower(), limit=15)
+        articles = _read_silver_safe(clean_sym.lower(), limit=15)
         if not articles:
             try:
                 raw = get_news(clean_sym, page_size=8)
@@ -478,7 +520,7 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
     internal_cat, frontend_cat = resolve_category(category)
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    articles = _valid_cached_articles(internal_cat, 10)
+    articles = [] if refresh else _valid_cached_articles(internal_cat, 10)
     if not articles:
         articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)][:10]
 
@@ -497,7 +539,7 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
     current_top_ids = [a.get("id") or _hash_id(frontend_cat, a.get("url", "")) for a in articles[:6]]
 
     if not refresh:
-        cached = get_news_gold_analysis(internal_cat)
+        cached = _read_gold_safe(internal_cat)
         if cached and isinstance(cached, dict) and cached.get("analyses"):
             cached_ids = cached.get("source_signature", [])
             if cached_ids == current_top_ids:
@@ -608,12 +650,12 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
             "analyses": normalized_analyses,
         }
 
-        save_news_gold_analysis(internal_cat, result_payload)
+        _write_gold_safe(internal_cat, result_payload)
         return result_payload
 
     except Exception as e:
         logger.error(f"Błąd analizy Gemini dla kategorii {frontend_cat}: {e}")
-        cached = get_news_gold_analysis(internal_cat)
+        cached = _read_gold_safe(internal_cat)
         if cached and isinstance(cached, dict) and cached.get("analyses"):
             cached["category"] = frontend_cat
             cached["stale"] = True
