@@ -1,0 +1,57 @@
+{
+  "category": "geopolitics",
+  "generatedAt": "2026-11-08T19:47:25Z",
+  "updated_at": "2026-11-08T19:47:25Z",
+  "summary": "Analiza wskazuje na trwające napięcia geopolityczne wokół wojny w Ukrainie, obejmujące incydenty z udziałem ukraińskiego lotnictwa w Polsce, kwestie wsparcia wojskowego ze strony państw zachodnich oraz incydenty dyplomatyczno-kryminalne. Sytuacja wpływa na stabilność bezpieczeństwa regionalnego oraz ciągłość dostaw i decyzje obronne państw europejskich.",
+  "sentiment": "negative",
+  "market_impact": "Podwyższone ryzyko geopolityczne w regionie Europy Środkowo-Wschodniej może wpływać na nastroje rynkowe, ze szczególnym uwzględnieniem sektora obronnego oraz walut i aktywów krajów przygranicznych.",
+  "uncertainty": "high",
+  "source_signature": [
+    "geopolitics-c3af3597",
+    "geopolitics-c6cac04c",
+    "geopolitics-04bc588d",
+    "geopolitics-54a7a333",
+    "geopolitics-469f2436",
+    "geopolitics-8378f8f1"
+  ],
+  "analyses": [
+    {
+      "id": "geopolitics-analysis-001",
+      "title": "Wsparcie wojskowe i logistyka dla Ukrainy",
+      "summary": "Kanada dostarczyła na Ukrainę blisko 3000 pojazdów opancerzonych Senator, podczas gdy Niemcy wstrzymały przekazywanie kolejnych systemów Patriot z zapasów Bundeswehry ze względu na ryzyko osłabienia własnej obrony. Jednocześnie odnotowano przelot ukraińskiego samolotu transportowego w polskiej przestrzeni powietrznej w kierunku hubu w Jasionce.",
+      "affectedMarkets": [
+        "Sektor obronny",
+        "Logistykka wojskowa",
+        "Waluty regionu CEE"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Zróżnicowane podejście państw zachodnich do pomocy wojskowej oraz incydenty w przestrzeni powietrznej wpływają na długoterminowe planowanie w przemyśle obronnym i logistyce.",
+      "market_impact": "Zróżnicowane podejście państw zachodnich do pomocy wojskowej oraz incydenty w przestrzeni powietrznej wpływają na długoterminowe planowanie w przemyśle obronnym i logistyce.",
+      "sourceArticleIds": [
+        "geopolitics-c3af3597",
+        "geopolitics-54a7a333",
+        "geopolitics-469f2436"
+      ]
+    },
+    {
+      "id": "geopolitics-analysis-002",
+      "title": "Bezpieczeństwo wewnętrzne i kontekst hybrydowy",
+      "summary": "Rosyjska ambasada skomentowała stan zdrowia obywatelki Rosji rannej w wyniku strzelaniny w Krakowie. Tematyka ta wiąże się z szerszą dyskursywną analizą metod wojny hybrydowej i nowej generacji stosowanych przez Rosję, co podnosi czujność służb w zakresie bezpieczeństwa wewnętrznego.",
+      "affectedMarkets": [
+        "Bezpieczeństwo publiczne",
+        "Rynek ubezpieczeń ryzyka politycznego"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Incydenty kryminalne z udziałem obywateli państw objętych sankcjami w połączeniu z napięciami hybrydowymi mogą generować presję na wzrost kosztów bezpieczeństwa i zaostrzenie procedur kontrolnych.",
+      "market_impact": "Incydenty kryminalne z udziałem obywateli państw objętych sankcjami w połączeniu z napięciami hybrydowymi mogą generować presję na wzrost kosztów bezpieczeństwa i zaostrzenie procedur kontrolnych.",
+      "sourceArticleIds": [
+        "geopolitics-c6cac04c",
+        "geopolitics-04bc588d"
+      ]
+    }
+  ]
+}

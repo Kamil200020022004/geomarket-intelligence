@@ -1,53 +1,57 @@
 {
   "category": "stocks",
-  "generatedAt": "2026-11-08T12:31:25Z",
-  "updated_at": "2026-11-08T12:31:25Z",
-  "summary": "Przegląd wiadomości gospodarczych i społecznych wskazuje na rosnącą presję regulacyjną na globalne podmioty technologiczne oraz istotne zróżnicowanie warunków ekonomicznych i pracy w Europie. Wydarzenia te mogą wpłynąć na stabilność wybranych sektorów giełdowych.",
+  "generatedAt": "2026-11-08T16:20:23Z",
+  "updated_at": "2026-11-08T16:20:23Z",
+  "summary": "Ostatnie dni przyniosły znaczące zawirowania i wyprzedaż na międzynarodowych rynkach finansowych, wywołane obawami związanymi ze spółkami sektora AI oraz wynikami wyborów w USA. Negatywne nastroje szybko przeniosły się na polską giełdę, powodując silne spadki m.in. na akcjach Orlenu. Sytuacja ta budzi obawy o pogłębienie trwającej korekty.",
   "sentiment": "negative",
-  "market_impact": "Zaostrzenie unijnych przepisów wobec platform społecznościowych oraz czynniki makroekonomiczne mogą zwiększyć zmienność notowań spółek technologicznych.",
-  "uncertainty": "medium",
+  "market_impact": "Korekta na rynkach globalnych oraz silna przecena na GPW zwiększają niepewność inwestorów i mogą prowadzić do dalszej podwyższonej zmienności w najbliższym czasie.",
+  "uncertainty": "high",
   "source_signature": [
-    "stocks-694737c4",
-    "stocks-56f4756f",
-    "stocks-b722a2cb",
-    "stocks-e7f5891a",
-    "stocks-35d19484",
-    "stocks-20e4981f"
+    "stocks-1ce90260",
+    "stocks-2690dc16",
+    "stocks-f3ac4c1b",
+    "stocks-71321b8e",
+    "stocks-ab5757a7",
+    "stocks-6e1d7b8d"
   ],
   "analyses": [
     {
       "id": "stocks-analysis-001",
-      "title": "Regulacyjna presja Komisji Europejskiej na sektor technologiczny",
-      "summary": "Komisja Europejska uznała, że spersonalizowany, niekończący się strumień wideo na platformie TikTok narusza unijne prawo. Algorytmy firmy są oceniane jako potencjalnie szkodliwe dla zdrowia psychicznego użytkowników.",
+      "title": "Wyprzedaż spółek AI i zawirowania polityczne w USA uderzają w giełdy",
+      "summary": "Wyniki amerykańskich wyborów połówkowych oraz obawy o utrzymanie tempa budowy centrów danych wywołały tąpnięcie na rynkach globalnych. Inwestorzy obawiają się o perspektywy sektora sztucznej inteligencji i półprzewodników, co zapoczątkowało głębszą korektę.",
       "affectedMarkets": [
-        "Sektor technologiczny",
-        "Spółki social media"
+        "USA Stock Market",
+        "GPW",
+        "Sektor AI"
       ],
       "sentiment": "negative",
       "riskLevel": "high",
       "uncertainty": "high",
-      "potentialImpact": "Możliwe wprowadzenie kar finansowych lub konieczność modyfikacji algorytmów przez platformy społecznościowe działające w Unii Europejskiej.",
-      "market_impact": "Możliwe wprowadzenie kar finansowych lub konieczność modyfikacji algorytmów przez platformy społecznościowe działające w Unii Europejskiej.",
+      "potentialImpact": "Zawirowania w USA przekładają się bezpośrednio na rynki europejskie, w tym na polską giełdę, zwiększając ryzyko dalszych spadków.",
+      "market_impact": "Zawirowania w USA przekładają się bezpośrednio na rynki europejskie, w tym na polską giełdę, zwiększając ryzyko dalszych spadków.",
       "sourceArticleIds": [
-        "stocks-e7f5891a"
+        "stocks-f3ac4c1b",
+        "stocks-71321b8e",
+        "stocks-ab5757a7",
+        "stocks-6e1d7b8d"
       ]
     },
     {
       "id": "stocks-analysis-002",
-      "title": "Zróżnicowanie kosztów pracy i uwarunkowania makroekonomiczne w Europie",
-      "summary": "Analiza kosztów jednej godziny pracy w Niemczech wskazuje na duże różnice regionalne pomiędzy landami o profilu usługowym a regionami turystycznymi, co wpływa na lokalną konkurencyjność.",
+      "title": "Silne spadki na GPW i przecena akcji Orlenu",
+      "summary": "Krach na giełdach w USA odbił się szerokim echem na warszawskim parkiecie. Wyprzedaż dotknęła kluczowe spółki, w tym Orlen, którego kurs runął o 6%.",
       "affectedMarkets": [
-        "Rynek pracy w UE",
-        "Obligacje skarbowe",
-        "Sektor usługowy"
+        "GPW",
+        "Orlen"
       ],
-      "sentiment": "neutral",
-      "riskLevel": "medium",
-      "uncertainty": "medium",
-      "potentialImpact": "Zróżnicowanie kosztów pracy może wpływać na decyzje lokalizacyjne przedsiębiorstw oraz marże operacyjne firm działających w różnych regionach Niemiec.",
-      "market_impact": "Zróżnicowanie kosztów pracy może wpływać na decyzje lokalizacyjne przedsiębiorstw oraz marże operacyjne firm działających w różnych regionach Niemiec.",
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Nagłe spadki na indeksach krajowych mogą osłabić sentyment inwestorów instytucjonalnych i indywidualnych do akcji spółek z GPW.",
+      "market_impact": "Nagłe spadki na indeksach krajowych mogą osłabić sentyment inwestorów instytucjonalnych i indywidualnych do akcji spółek z GPW.",
       "sourceArticleIds": [
-        "stocks-694737c4"
+        "stocks-f3ac4c1b",
+        "stocks-6e1d7b8d"
       ]
     }
   ]

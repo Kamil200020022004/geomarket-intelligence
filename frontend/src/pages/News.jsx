@@ -7,20 +7,43 @@ import {
   ExternalLink,
   Globe2,
   Newspaper,
-  RefreshCw,
   Search,
   ShieldAlert,
 } from "lucide-react"
-import { getStockAIImpact, getStockNews } from "../api/aiApi"
+
+const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8001").replace(/\/$/, "")
 
 const NEWS_TOPICS = [
-  { label: "Giełda", value: "WIG20.WA" },
-  { label: "Makroekonomia", value: "EURPLN=X" },
-  { label: "Kryptowaluty", value: "BTC-USD" },
-  { label: "Geopolityka", value: "GC=F" },
-  { label: "Polska gospodarka", value: "EURPLN=X" },
-  { label: "Światowe rynki", value: "AAPL" },
+  { label: "Giełda", value: "stocks" },
+  { label: "Makroekonomia", value: "macro" },
+  { label: "Kryptowaluty", value: "crypto" },
+  { label: "Geopolityka", value: "geopolitics" },
+  { label: "Polska gospodarka", value: "poland" },
+  { label: "Światowe rynki", value: "global" },
 ]
+
+async function getApiData(path, signal) {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "GET",
+    cache: "no-store",
+    signal,
+  })
+  if (!response.ok) throw new Error(`Błąd API (HTTP ${response.status})`)
+  return response.json()
+}
+
+function formatPublishedDate(value) {
+  if (!value) return "Brak daty publikacji"
+  const dt = new Date(value)
+  return Number.isNaN(dt.getTime())
+    ? value
+    : dt.toLocaleString("pl-PL", { dateStyle: "medium", timeStyle: "short" })
+}
+
+const RISK_LABEL = { low: "Niskie", medium: "Średnie", high: "Wysokie" }
+const SENTIMENT_LABEL = { positive: "Pozytywny", neutral: "Neutralny", negative: "Negatywny" }
+const riskLabel = (value) => RISK_LABEL[value] || value || "Brak danych"
+const sentimentLabel = (value) => SENTIMENT_LABEL[value] || value || "Brak danych"
 
 function News() {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -32,6 +55,7 @@ function News() {
   const [selectedNews, setSelectedNews] = useState(null)
 
   const [aiImpact, setAiImpact] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const [loadingNews, setLoadingNews] = useState(false)
   const [loadingAI, setLoadingAI] = useState(false)
@@ -48,64 +72,77 @@ function News() {
   }, [])
 
   useEffect(() => {
-    loadInternetNews(selectedTopic.value)
-  }, [selectedTopic])
+    const controller = new AbortController()
+    const category = encodeURIComponent(selectedTopic.value)
+    const refresh = refreshKey > 0 ? "&refresh=true" : ""
 
-  useEffect(() => {
-    loadAIImpact()
-  }, [])
-
-  async function loadInternetNews(symbol) {
-    try {
+    if (activeSection === "internet") {
       setLoadingNews(true)
       setErrorNews("")
-
-      const newsData = await getStockNews(symbol)
-      const articles = newsData?.articles || []
-
-      const normalizedArticles = articles.map((article, index) => ({
-        id: `${symbol}-${index}`,
-        title: article.title || "Brak tytułu",
-        source: article.source || "Brak źródła",
-        published: article.published || "Brak daty publikacji",
-        url: article.url || "#",
-      }))
-
-      setInternetNews(normalizedArticles)
-      setSelectedNews(normalizedArticles[0] || null)
-    } catch (err) {
-      console.error(err)
       setInternetNews([])
       setSelectedNews(null)
-      setErrorNews("Nie udało się pobrać wiadomości.")
-    } finally {
-      setLoadingNews(false)
-    }
-  }
 
-  async function loadAIImpact() {
-    try {
+      getApiData(`/news?category=${category}${refresh}`, controller.signal)
+        .then((data) => {
+          const items = Array.isArray(data?.articles) ? data.articles : []
+          const normalized = items.map((article, index) => ({
+            id: article.id || `${selectedTopic.value}-${index}`,
+            title: article.title || "Brak tytułu",
+            description: article.description || "",
+            source: article.source || "Brak źródła",
+            published: formatPublishedDate(article.publishedAt || article.published_at || article.published),
+            url: article.url || "#",
+          }))
+          setInternetNews(normalized)
+          setSelectedNews(normalized[0] || null)
+        })
+        .catch((error) => {
+          if (error.name === "AbortError") return
+          console.error("Błąd pobierania newsów:", error)
+          setErrorNews(`Nie udało się pobrać wiadomości. ${error.message}`)
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoadingNews(false)
+        })
+    } else {
       setLoadingAI(true)
       setErrorAI("")
+      setAiImpact(null)
 
-      const data = await getStockAIImpact()
-
-      setAiImpact(data)
-    } catch (err) {
-      console.error(err)
-      setErrorAI("Nie udało się pobrać analizy AI.")
-    } finally {
-      setLoadingAI(false)
+      getApiData(`/news/analysis?category=${category}${refresh}`, controller.signal)
+        .then((data) => {
+          const analyses = Array.isArray(data?.analyses) ? data.analyses : []
+          const first = analyses[0] || null
+          setAiImpact(first ? {
+            event: first.title || "Analiza wybranej kategorii",
+            summary: first.summary || data.summary || "Brak podsumowania.",
+            riskLevel: first.riskLevel || data.uncertainty,
+            sentiment: first.sentiment || data.sentiment,
+            affectedMarkets: Array.isArray(first.affectedMarkets)
+              ? first.affectedMarkets.join(", ")
+              : (first.affectedMarkets || ""),
+            potentialImpact: first.potentialImpact || data.market_impact || "",
+            analyses,
+            aiUnavailable: Boolean(data.aiUnavailable),
+          } : null)
+          if (data.aiUnavailable) setErrorAI("Usługa AI jest chwilowo niedostępna. Ponów próbę później.")
+          else if (!first) setErrorAI(data.summary || "Brak analiz dla wybranej kategorii.")
+        })
+        .catch((error) => {
+          if (error.name === "AbortError") return
+          console.error("Błąd pobierania analizy AI:", error)
+          setErrorAI(`Nie udało się pobrać analizy AI. ${error.message}`)
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoadingAI(false)
+        })
     }
-  }
+
+    return () => controller.abort()
+  }, [selectedTopic, activeSection, refreshKey])
 
   function refreshCurrentSection() {
-    if (activeSection === "internet") {
-      loadInternetNews(selectedTopic.value)
-      return
-    }
-
-    loadAIImpact()
+    setRefreshKey((previous) => previous + 1)
   }
 
   const formattedTime = currentTime.toLocaleTimeString("pl-PL", {
@@ -131,11 +168,11 @@ function News() {
   const getRiskClass = (riskLevel) => {
     const value = riskLevel?.toLowerCase() || ""
 
-    if (value.includes("wys")) {
+    if (value === "high" || value.includes("wys")) {
       return "border-red-500/30 bg-red-500/10 text-red-400"
     }
 
-    if (value.includes("śred") || value.includes("sred")) {
+    if (value === "medium" || value.includes("śred") || value.includes("sred")) {
       return "border-amber-500/30 bg-amber-500/10 text-amber-400"
     }
 
@@ -145,11 +182,11 @@ function News() {
   const getSentimentClass = (sentiment) => {
     const value = sentiment?.toLowerCase() || ""
 
-    if (value.includes("neg")) {
+    if (value === "negative" || value.includes("neg")) {
       return "border-red-500/30 bg-red-500/10 text-red-400"
     }
 
-    if (value.includes("poz")) {
+    if (value === "positive" || value.includes("poz")) {
       return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
     }
 
@@ -218,7 +255,7 @@ function News() {
                 </h3>
 
                 <p className="mt-2 text-sm text-slate-400">
-                  Przełącz między wiadomościami rynkowymi a analizą AI.
+                  Przeglądaj wiadomości albo zbiorczą analizę AI wybranego obszaru.
                 </p>
               </div>
 
@@ -242,24 +279,22 @@ function News() {
                       : "text-slate-400 hover:text-blue-400"
                   }`}
                 >
-                  Analiza AI
+                  Analiza AI kategorii
                 </button>
               </div>
             </div>
 
-            {activeSection === "internet" && (
-              <>
                 <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
                   <div className="mb-4 flex items-center gap-3 text-blue-400">
                     <Search size={21} />
 
                     <div>
                       <h4 className="font-semibold">
-                        Temat wiadomości
+                        Kategoria tematyczna
                       </h4>
 
                       <p className="mt-1 text-sm text-slate-400">
-                        Wybierz obszar wiadomości: giełda, makroekonomia,
+                        Wybierz kategorię wiadomości i analizy AI: giełda, makroekonomia,
                         kryptowaluty, geopolityka, polska gospodarka albo
                         światowe rynki.
                       </p>
@@ -283,6 +318,8 @@ function News() {
                   </div>
                 </div>
 
+            {activeSection === "internet" && (
+              <>
                 {loadingNews && (
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-sm text-slate-400">
                     Pobieranie wiadomości...
@@ -358,6 +395,11 @@ function News() {
 
             {activeSection === "ai" && (
               <>
+                <div className="mb-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 px-5 py-4 text-sm leading-6 text-slate-300">
+                  Analiza AI obejmuje najnowsze dostępne wiadomości z całej kategorii
+                  <span className="font-semibold text-white"> {selectedTopic.label}</span>.
+                  Nie dotyczy wyłącznie pojedynczego artykułu zaznaczonego na liście.
+                </div>
                 {loadingAI && (
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5 text-sm text-slate-400">
                     Pobieranie analizy AI...
@@ -376,7 +418,7 @@ function News() {
                       <Brain size={24} />
 
                       <h4 className="text-xl font-bold text-white">
-                        Aktualna analiza AI
+                        Analiza AI — {selectedTopic.label}
                       </h4>
                     </div>
 
@@ -401,6 +443,13 @@ function News() {
                         </p>
                       </div>
 
+                      {aiImpact.potentialImpact && (
+                        <div>
+                          <p className="text-sm text-slate-500">Potencjalny wpływ na rynki</p>
+                          <p className="mt-2 leading-7 text-slate-300">{aiImpact.potentialImpact}</p>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                           <p className="text-sm text-slate-500">
@@ -412,7 +461,7 @@ function News() {
                               aiImpact.riskLevel
                             )}`}
                           >
-                            {aiImpact.riskLevel || "Brak danych"}
+                            {riskLabel(aiImpact.riskLevel)}
                           </span>
                         </div>
 
@@ -426,7 +475,7 @@ function News() {
                               aiImpact.sentiment
                             )}`}
                           >
-                            {aiImpact.sentiment || "Brak danych"}
+                            {sentimentLabel(aiImpact.sentiment)}
                           </span>
                         </div>
                       </div>
@@ -455,6 +504,20 @@ function News() {
                       </div>
                     </div>
                   </article>
+                )}
+
+                {!loadingAI && !errorAI && aiImpact?.analyses?.length > 1 && (
+                  <div className="mt-4 space-y-3">
+                    {aiImpact.analyses.slice(1).map((analysis) => (
+                      <article key={analysis.id} className="rounded-2xl border border-blue-500/30 bg-slate-950/70 p-5">
+                        <h4 className="font-semibold text-white">{analysis.title}</h4>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">{analysis.summary}</p>
+                        {analysis.potentialImpact && (
+                          <p className="mt-2 text-sm text-slate-400">Możliwy wpływ: {analysis.potentialImpact}</p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
                 )}
               </>
             )}
@@ -507,6 +570,9 @@ function News() {
                       <span className="text-slate-500">Publikacja:</span>{" "}
                       {selectedNews.published}
                     </p>
+                    {selectedNews.description && (
+                      <p className="leading-6 text-slate-300">{selectedNews.description}</p>
+                    )}
                   </div>
 
                   {selectedNews.url !== "#" && (
@@ -541,8 +607,9 @@ function News() {
                 </h3>
 
                 <p className="mt-3 text-sm leading-6 text-slate-400">
-                  Panel pokazuje wydarzenie, poziom ryzyka, sentyment oraz
-                  powiązane rynki.
+                  Zbiorcza analiza wiadomości z kategorii {selectedTopic.label}:
+                  podsumowanie, poziom ryzyka, sentyment oraz powiązane rynki.
+                  Nie jest to analiza jednego wybranego artykułu.
                 </p>
               </div>
 
@@ -577,7 +644,7 @@ function News() {
                           aiImpact.riskLevel
                         )}`}
                       >
-                        Ryzyko: {aiImpact.riskLevel || "Brak danych"}
+                        Ryzyko: {riskLabel(aiImpact.riskLevel)}
                       </span>
 
                       <span
@@ -585,7 +652,7 @@ function News() {
                           aiImpact.sentiment
                         )}`}
                       >
-                        Sentyment: {aiImpact.sentiment || "Brak danych"}
+                        Sentyment: {sentimentLabel(aiImpact.sentiment)}
                       </span>
                     </div>
                   </div>

@@ -1,57 +1,74 @@
 {
   "category": "crypto",
-  "generatedAt": "2026-11-08T12:31:34Z",
-  "updated_at": "2026-11-08T12:31:34Z",
-  "summary": "Analizowane wiadomości z rynku kryptowalut skupiają się na perspektywach wzrostu wybranych altcoinów, takich jak Solana, Cardano czy XRP ETF, w obliczu nadchodzących danych makroekonomicznych z USA. Jednocześnie rynek musi mierzyć się z poważnymi zagrożeniami związanymi z cyberbezpieczeństwem oraz niepewnością regulacyjną i globalną.",
-  "sentiment": "neutral",
-  "market_impact": "Mieszane nastroje rynkowe, na które wpływają zarówno potencjalne sygnały odbicia dla głównych altcoinów, jak i ryzyka związane z bezpieczeństwem giełd oraz publikacją danych o inflacji CPI w USA.",
+  "generatedAt": "2026-11-08T19:47:12Z",
+  "updated_at": "2026-11-08T19:47:12Z",
+  "summary": "Rynek kryptowalut zmaga się obecnie z silną presją niedźwiedzia, licznymi atakami hakerskimi na giełdy oraz rosnącymi problemami regulacyjnymi i operacyjnymi platform. Duzi inwestorzy obstawiają dalsze spadki Bitcoina, podczas gdy giełdy odnotowują zmiany kadrowe i problemy z zamrażaniem środków użytkowników.",
+  "sentiment": "negative",
+  "market_impact": "Wzrost obaw o bezpieczeństwo giełd kryptowalutowych oraz pesymistyczne nastroje wśród wielorybów mogą prowadzić do pogłębienia korekty cenowej i odpływu kapitału z centralizowanych platform.",
   "uncertainty": "high",
   "source_signature": [
+    "crypto-b9a23325",
+    "crypto-2447fdd1",
+    "crypto-9fc5e5ca",
     "crypto-f06abf5b",
     "crypto-5a115ec4",
-    "crypto-51aad62b",
-    "crypto-c92824cc",
-    "crypto-ae0699e6",
-    "crypto-4cb557b7"
+    "crypto-6921d6d9"
   ],
   "analyses": [
     {
       "id": "crypto-analysis-001",
-      "title": "Potencjał wzrostowy alternatywnych kryptowalut w listopadzie",
-      "summary": "Analizy rynkowe wskazują, że wybrane popularne aktywa cyfrowe, takie jak Solana, Cardano oraz fundusze XRP ETF, mogą szukać punktów zwrotnych do odrobienia wcześniejszych strat. Mimo trudniejszych warunków historycznych, dane on-chain i nastroje wokół poszczególnych projektów dają nadzieję na ożywienie.",
+      "title": "Bezpieczeństwo giełd i odpływ kapitału po atakach hakerskich",
+      "summary": "Platformy takie jak Binance i MEXC mierzą się z poważnymi problemami operacyjnymi po niedawnych incydentach hakerskich przypisywanych hakerom z Korei Północnej. Klienci zgłaszają zamrażanie środków przy próbach transferu, a w Binance doszło do nagłej zmiany dyrektora finansowego.",
       "affectedMarkets": [
-        "Solana",
-        "Cardano",
-        "XRP"
-      ],
-      "sentiment": "positive",
-      "riskLevel": "medium",
-      "uncertainty": "medium",
-      "potentialImpact": "Potencjalne ożywienie handlu na poszczególnych altcoinach, choć sytuacja funduszy ETF pozostaje na razie umiarkowanie optymistyczna.",
-      "market_impact": "Potencjalne ożywienie handlu na poszczególnych altcoinach, choć sytuacja funduszy ETF pozostaje na razie umiarkowanie optymistyczna.",
-      "sourceArticleIds": [
-        "crypto-f06abf5b",
-        "crypto-c92824cc",
-        "crypto-ae0699e6"
-      ]
-    },
-    {
-      "id": "crypto-analysis-002",
-      "title": "Zagrożenia bezpieczeństwa i kluczowe dane makroekonomiczne z USA",
-      "summary": "Rynek kryptowalut zmaga się z falą rekordowych kradzieży i miliardowych strat na giełdach spowodowanych działalnością hakerów. Dodatkowo inwestorzy wyczekują publikacji amerykańskich danych o inflacji CPI, które tradycyjnie mogą wywołać silną zmienność na rynkach finansowych.",
-      "affectedMarkets": [
-        "Cały rynek crypto",
-        "Giełdy kryptowalut"
+        "Binance",
+        "MEXC",
+        "Bezpieczeństwo giełd"
       ],
       "sentiment": "negative",
       "riskLevel": "high",
       "uncertainty": "high",
-      "potentialImpact": "Wzrost obaw o bezpieczeństwo środków trzymanych na giełdach oraz podwyższona zmienność wywołana publikacją wskaźników makroekonomicznych.",
-      "market_impact": "Wzrost obaw o bezpieczeństwo środków trzymanych na giełdach oraz podwyższona zmienność wywołana publikacją wskaźników makroekonomicznych.",
+      "potentialImpact": "Wzrost ryzyka regulacyjnego i operacyjnego giełd może skutkować masowym odpływem środków użytkowników w stronę rozwiązań typu self-custody oraz decentralizowanych platform.",
+      "market_impact": "Wzrost ryzyka regulacyjnego i operacyjnego giełd może skutkować masowym odpływem środków użytkowników w stronę rozwiązań typu self-custody oraz decentralizowanych platform.",
       "sourceArticleIds": [
-        "crypto-5a115ec4",
-        "crypto-51aad62b",
-        "crypto-4cb557b7"
+        "crypto-2447fdd1",
+        "crypto-9fc5e5ca",
+        "crypto-5a115ec4"
+      ]
+    },
+    {
+      "id": "crypto-analysis-002",
+      "title": "Niedźwiedzie nastawienie wielorybów i stabilizacja Bitcoina",
+      "summary": "Najwięksi gracze na zdecentralizowanej giełdzie Hyperliquid masowo otwierają pozycje krótkie na Bitcoinie, co stanowi największe zakłady spadkowe od początku bieżącego rynku niedźwiedzia. Jednocześnie kurs BTC próbuje się stabilizować po wcześniejszych wahaniach wyborczych i atakach hakerskich.",
+      "affectedMarkets": [
+        "Bitcoin",
+        "Hyperliquid",
+        "Kontrakty Perpetuals"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Dominacja pozycji krótkich wśród dużych inwestorów może utrzymać presję podażową na główną kryptowalutę i utrudnić trwała odbicie cenowe.",
+      "market_impact": "Dominacja pozycji krótkich wśród dużych inwestorów może utrzymać presję podażową na główną kryptowalutę i utrudnić trwała odbicie cenowe.",
+      "sourceArticleIds": [
+        "crypto-b9a23325",
+        "crypto-6921d6d9"
+      ]
+    },
+    {
+      "id": "crypto-analysis-003",
+      "title": "Potencjalne odbicie Solany w listopadzie",
+      "summary": "Mimo że Solana znajduje się daleko od swoich historycznych maksimów, analizy rynkowe sprawdzają dane sugerujące możliwość wyraźnego odbicia kursu SOL w listopadzie i potencjalnego odrobienia wcześniejszych strat.",
+      "affectedMarkets": [
+        "Solana",
+        "Altcoiny"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Ewentualne ożywienie na Solanie mogłoby poprawić nastroje w sektorze alternatywnych kryptowalut pomimo ogólnej rynkowej bessy.",
+      "market_impact": "Ewentualne ożywienie na Solanie mogłoby poprawić nastroje w sektorze alternatywnych kryptowalut pomimo ogólnej rynkowej bessy.",
+      "sourceArticleIds": [
+        "crypto-f06abf5b"
       ]
     }
   ]

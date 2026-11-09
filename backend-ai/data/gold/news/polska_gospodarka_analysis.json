@@ -1,0 +1,52 @@
+{
+  "category": "poland",
+  "generatedAt": "2026-11-08T16:19:28Z",
+  "updated_at": "2026-11-08T16:19:28Z",
+  "summary": "Analiza doniesień medialnych z Polski obejmuje prognozy makroekonomiczne NBP dotyczące inflacji na rok 2026, debaty wokół weryfikacji informacji gospodarczo-prawnych w mediach oraz wydarzenia polityczne o potencjalnym znaczeniu systemowym, takie jak wybory prezydenckie. Informacje te wskazują na stabilizację wskaźników makroekonomicznych przy jednoczesnym występowaniu szumów informacyjnych i wydarzeń politycznych o dużej polaryzacji.",
+  "sentiment": "neutral",
+  "market_impact": "Mieszany charakter doniesień może wywoływać krótkoterminową zmienność nastrojów rynkowych, szczególnie w kontekście napięć politycznych oraz zróżnicowanych oczekiwań inflacyjnych.",
+  "uncertainty": "medium",
+  "source_signature": [
+    "poland-339f9e09",
+    "poland-060a0c90",
+    "poland-3df87c80"
+  ],
+  "analyses": [
+    {
+      "id": "poland-analysis-001",
+      "title": "Aktualizacja prognoz inflacyjnych NBP na 2026 rok",
+      "summary": "Nowa projekcja NBP wskazuje na inflację w przedziale 3,1-3,2% w 2026 roku, co stanowi doprecyzowanie wcześniejszych szacunków z lipca wynoszących 2,4-3,3%. Zmiany te odzwierciedlają bieżące modele makroekonomiczne banku centralnego.",
+      "affectedMarkets": [
+        "Rynek walutowy",
+        "Rynek długu",
+        "Obligacje skarbowe"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "low",
+      "uncertainty": "low",
+      "potentialImpact": "Stabilizacja przewidywań inflacyjnych może wpływać na decyzje dotyczące stóp procentowych oraz wycenę krajowych instrumentów dłużnych.",
+      "market_impact": "Stabilizacja przewidywań inflacyjnych może wpływać na decyzje dotyczące stóp procentowych oraz wycenę krajowych instrumentów dłużnych.",
+      "sourceArticleIds": [
+        "poland-339f9e09"
+      ]
+    },
+    {
+      "id": "poland-analysis-002",
+      "title": "Wpływ wydarzeń politycznych i weryfikacja informacji na nastroje rynkowe",
+      "summary": "Wyniki sondaży exit poll wskazują na wyrównaną walkę w drugiej turze wyborów prezydenckich z minimalną przewagą Rafała Trzaskowskiego nad Karolem Nawrockim. Jednocześnie w przestrzeni medialnej pojawiają się i są dementowane doniesienia o charakterze fake news dotyczące regulacji prawnych.",
+      "affectedMarkets": [
+        "Akcje spółek skarbu państwa",
+        "Złoty polski"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Wysoka polaryzacja polityczna oraz szum informacyjny mogą generować podwyższoną zmienność na krajowym rynku finansowym i wpływać na sentyment inwestorów zagranicznych.",
+      "market_impact": "Wysoka polaryzacja polityczna oraz szum informacyjny mogą generować podwyższoną zmienność na krajowym rynku finansowym i wpływać na sentyment inwestorów zagranicznych.",
+      "sourceArticleIds": [
+        "poland-060a0c90",
+        "poland-3df87c80"
+      ]
+    }
+  ]
+}

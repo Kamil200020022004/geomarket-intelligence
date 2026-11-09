@@ -3,10 +3,11 @@ import html
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
 import feedparser
 import requests
+from urllib.parse import urlparse
 from google import genai
 
 from app.config.settings import settings
@@ -23,7 +24,6 @@ from app.services.data_lake_service import (
 logger = logging.getLogger("news_service")
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-# Mapowanie identyfikatorów z frontendu (angielskie) na wewnętrzne klucze Data Lake (polskie)
 FRONTEND_TO_INTERNAL_CATEGORY = {
     "stocks": "gielda",
     "macro": "makroekonomia",
@@ -31,7 +31,6 @@ FRONTEND_TO_INTERNAL_CATEGORY = {
     "geopolitics": "geopolityka",
     "poland": "polska_gospodarka",
     "global": "swiatowe_rynki",
-    # Obsługa bezpośrednich zapytań po polsku (np. ze schedulera)
     "gielda": "gielda",
     "makroekonomia": "makroekonomia",
     "kryptowaluty": "kryptowaluty",
@@ -49,27 +48,55 @@ INTERNAL_TO_FRONTEND_CATEGORY = {
     "swiatowe_rynki": "global",
 }
 
-# Zapytania do NewsAPI dopasowane ściśle do każdej kategorii (bez ogólnego fallbacku 'finance')
 CATEGORY_MAPPING = {
-    "gielda": "stock market OR NASDAQ OR S&P 500 OR equities",
-    "makroekonomia": "inflation OR interest rates OR GDP OR central bank",
-    "kryptowaluty": "bitcoin OR ethereum OR cryptocurrency",
+    "gielda": "stock market OR NASDAQ OR S&P 500 OR equities OR giełda",
+    "makroekonomia": "inflation OR interest rates OR GDP OR central bank OR inflacja stopy",
+    "kryptowaluty": "bitcoin OR ethereum OR cryptocurrency OR krypto",
     "geopolityka": "geopolitics OR sanctions OR trade tariff OR conflict economy",
-    "polska_gospodarka": "Poland economy OR Warsaw Stock Exchange OR NBP",
+    "polska_gospodarka": "Poland economy OR Warsaw Stock Exchange OR NBP OR GUS",
     "swiatowe_rynki": "global markets OR Wall Street OR European markets OR commodities",
 }
 
+# Uszczelniona czarna lista domen i repozytoriów deweloperskich
 EXCLUDED_DOMAINS = [
     "pagesix.com",
     "thoughtcatalog.com",
     "tmz.com",
     "pypi.org",
+    "pypi.python.org",
     "github.com",
+    "github.io",
+    "gitlab.com",
     "buzzfeed.com",
     "dailymail.co.uk",
+    "npmjs.com",
+    "packaging.python.org",
+    "libraries.io",
+    "readthedocs.io",
+    "crates.io",
+    "hackernews",
 ]
 
-# Zweryfikowane, działające źródła RSS dla każdej z 6 kategorii
+EXCLUDED_TITLE_KEYWORDS = [
+    "added to pypi",
+    "show hn",
+    "release notes",
+    "v0.",
+    "v1.",
+    "commit",
+    "pull request",
+    "merge branch",
+    "pypi",
+    "python package",
+    "python library",
+    "package released",
+    "package published",
+    "tickfeed",
+    "npm package",
+    "github release",
+    "stackoverflow",
+]
+
 RSS_SOURCES = {
     "gielda": [
         ("https://www.bankier.pl/rss/wiadomosci.xml", "Bankier.pl"),
@@ -108,13 +135,62 @@ DEFAULT_MARKETS_BY_CATEGORY = {
     "swiatowe_rynki": ["S&P 500", "DAX", "Surowce"],
 }
 
+# Tematyczne sygnały: wymagamy zgodności także przy odczycie STAREGO cache.
+# Weryfikacja z tytułu/opisu to heurystyka; szczegółową selekcję można później
+# rozwinąć o klasyfikator, ale bez wymyślania informacji.
+TOPIC_KEYWORDS = {
+    "gielda": ("giełd", "gield", "akcj", "spółk", "spolk", "wig20", "gpw", "nasdaq", "s&p", "wall street", "stock", "equity", "earnings", "shares", "dow jones", "indeks", "nvidia", "apple", "tesla", "microsoft"),
+    "makroekonomia": ("inflac", "cpi", "pkb", "gdp", "stop", "oprocent", "bank central", "banku central", "fed", "ebc", "ecb", "nbp", "bezroboc", "gospodar", "reces", "monetarn", "interest rate", "inflation", "employment"),
+    "kryptowaluty": ("bitcoin", "btc", "ethereum", "ether", "eth", "krypto", "crypto", "blockchain", "stablecoin", "solana", "altcoin", "binance"),
+    "geopolityka": ("geopolit", "sankcj", "wojn", "konflikt", "nato", "rosj", "ukrain", "chiny", "chinach", "tajwan", "iran", "izrael", "cł", "celn", "taryf", "trade war", "sanction", "war ", "conflict", "diplomac"),
+    "polska_gospodarka": ("polsk", "poland", "nbp", "gus", "gpw", "wig20", "złot", "zlot", "pln", "warszaw", "polskie", "budżet", "budzet", "orlen", "pko bp", "kghm"),
+    "swiatowe_rynki": ("rynk", "market", "wall street", "s&p", "nasdaq", "dow jones", "dax", "nikkei", "surow", "ropa", "oil", "gold", "złot", "giełd", "stock", "indeks", "global", "walut", "currency", "dolar", "dollar", "euro", "azj", "europ"),
+}
+
+
+def _is_relevant(article: dict, internal_cat: str) -> bool:
+    title = _clean_html(str(article.get("title") or ""))
+    description = _clean_html(str(article.get("description") or ""))
+    url = str(article.get("url") or "").strip()
+    source = article.get("source") or ""
+    if isinstance(source, dict):
+        source = source.get("name") or ""
+    if not title or not url.startswith(("https://", "http://")):
+        return False
+    domain = (urlparse(url).hostname or "").lower()
+    low_title = title.casefold()
+    if any(x in domain for x in EXCLUDED_DOMAINS):
+        return False
+    if any(x in low_title for x in EXCLUDED_TITLE_KEYWORDS):
+        return False
+    if "[removed]" in low_title or "[usunięto]" in low_title:
+        return False
+    combined = (title + " " + description).casefold()
+    return any(word in combined for word in TOPIC_KEYWORDS[internal_cat])
+
+
+def _valid_cached_articles(internal_cat: str, limit: int) -> list[dict]:
+    articles = get_news_from_silver(internal_cat, limit=max(limit, 50))
+    articles = [a for a in articles if _is_relevant(a, internal_cat)]
+    articles.sort(key=lambda a: a.get("published_at", ""), reverse=True)
+    return articles[:limit]
+
+
+def _looks_polish(text: str) -> bool:
+    # Polskojęzyczne RSS bez polskich znaków także przechodzą przy ich znanym źródle;
+    # dla NewsAPI ten test odróżnia część nieprzetłumaczonych nagłówków.
+    t = f" {text.lower()} "
+    return bool(re.search(r"[ąćęłńóśźż]", t)) or any(
+        f" {w} " in t for w in ("jest", "oraz", "przez", "polsce", "gospodarka", "rynku", "ceny", "wzrost", "spadek", "banku", "akcje", "inflacja", "nowe", "nowy", "spada", "rośnie", "rosnie", "wobec", "według", "wedlug", "dane", "kurs", "wyniki", "inwestorzy", "prognoza", "zmiany", "reaguje", "po", "na", "dla", "ze")
+    )
+
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GeoMarketIntelligence/1.0"
 }
 
 
 def resolve_category(category: str) -> tuple[str, str]:
-    """Zwraca (internal_key, frontend_key) lub rzuca ValueError dla nieznanej kategorii."""
     clean = (category or "").strip().lower().replace(" ", "_")
     if clean not in FRONTEND_TO_INTERNAL_CATEGORY:
         raise ValueError(f"Nieobsługiwana kategoria: {category}")
@@ -154,13 +230,12 @@ def _normalize_iso_date(raw_date: str | None, fallback_iso: str) -> str:
 
 
 def _translate_titles_batch(titles: list[str]) -> list[str]:
-    """Tłumaczy angielskie nagłówki z NewsAPI na język polski przez Gemini."""
     if not titles:
         return []
 
     prompt = (
-        "Przetłumacz poniższe nagłówki wiadomości finansowych i geopolitycznych na naturalny, "
-        "rzeczowy język polski. Zwróć wynik WYŁĄCZNIE jako poprawną tablicę JSON, "
+        "Przetłumacz poniższe tytuły i opisy wiadomości finansowych i geopolitycznych na naturalny, "
+        "rzeczowy język polski. Zachowaj fakty i nazwy własne, nie dopisuj informacji. Zwróć wynik WYŁĄCZNIE jako poprawną tablicę JSON, "
         "dokładnie w tej samej kolejności: [\"tytuł 1\", \"tytuł 2\", ...].\n\n"
         f"Nagłówki:\n{json.dumps(titles, ensure_ascii=False)}"
     )
@@ -184,7 +259,6 @@ def _translate_titles_batch(titles: list[str]) -> list[str]:
 
 
 def fetch_from_rss(internal_cat: str) -> list[dict]:
-    """Pobiera, oczyszcza i normalizuje wiadomości z kanałów RSS dla danej kategorii."""
     feeds = RSS_SOURCES.get(internal_cat, [])
     frontend_cat = INTERNAL_TO_FRONTEND_CATEGORY.get(internal_cat, internal_cat)
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -204,6 +278,8 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
                     continue
                 if "kanał rss został" in title.lower() or "komunikat" == title.lower():
                     continue
+                if any(kw in title.lower() for kw in EXCLUDED_TITLE_KEYWORDS):
+                    continue
 
                 source_name = default_source_name
                 if hasattr(entry, "source") and isinstance(entry.source, dict):
@@ -215,6 +291,11 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
                 if not desc or desc == title:
                     desc = f"Wiadomość rynkowa z serwisu {source_name} w kategorii {frontend_cat}."
 
+                candidate = {
+                    "title": title, "description": desc, "url": url, "source": source_name
+                }
+                if not _is_relevant(candidate, internal_cat):
+                    continue
                 seen_urls.add(url)
                 articles.append({
                     "id": _hash_id(frontend_cat, url),
@@ -231,20 +312,10 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
         except Exception as e:
             logger.warning(f"Błąd pobierania kanału RSS {feed_url}: {e}")
 
-    if articles:
-        try:
-            save_to_bronze("news_rss", internal_cat, {"articles": articles})
-        except Exception:
-            pass
-
     return articles
 
 
 def fetch_and_process_category(category_key: str) -> list[dict]:
-    """
-    Pobiera artykuły dla danej kategorii (RSS + uzupełnienie z NewsAPI)
-    i zapisuje oczyszczony zbiór w warstwie Silver Data Lake.
-    """
     try:
         internal_cat, frontend_cat = resolve_category(category_key)
     except ValueError:
@@ -255,7 +326,6 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
     all_articles = fetch_from_rss(internal_cat)
     seen_urls = {a["url"] for a in all_articles}
 
-    # Uzupełnienie z NewsAPI, jeśli z RSS pobrano mniej niż 10 artykułów
     if len(all_articles) < 10 and settings.NEWS_API_KEY:
         query = CATEGORY_MAPPING.get(internal_cat, internal_cat)
         raw_articles = []
@@ -264,33 +334,39 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
         except Exception as e:
             logger.warning(f"NewsAPI niedostępne dla {internal_cat}: {e}")
 
-        if raw_articles:
-            try:
-                save_to_bronze("newsapi", internal_cat, {"articles": raw_articles})
-            except Exception:
-                pass
-
         filtered_newsapi = []
         for art in raw_articles:
             source_name = (art.get("source", {}).get("name") or "").lower()
-            url = (art.get("url") or "").strip()
-            title = (art.get("title") or "").strip()
+            url = (art.get("url") or "").strip().lower()
+            title = (art.get("title") or "").strip().lower()
 
-            if not url or not title or "[Removed]" in title or url in seen_urls:
+            if not url or not title or "[removed]" in title or url in seen_urls:
                 continue
-            if any(domain in url.lower() or domain in source_name for domain in EXCLUDED_DOMAINS):
+            if any(domain in url or domain in source_name for domain in EXCLUDED_DOMAINS):
+                continue
+            if any(kw in title for kw in EXCLUDED_TITLE_KEYWORDS):
+                continue
+            if not _is_relevant({"title": art.get("title"), "description": art.get("description"), "url": art.get("url"), "source": source_name}, internal_cat):
                 continue
 
             filtered_newsapi.append(art)
 
         selected_newsapi = filtered_newsapi[:5]
         orig_titles = [a.get("title", "") for a in selected_newsapi]
-        translated = _translate_titles_batch(orig_titles)
+        # Tłumaczymy zarówno tytuły, jak i opisy jednym wywołaniem Gemini.
+        descriptions = [_clean_html(a.get("description") or "") for a in selected_newsapi]
+        translated_items = _translate_titles_batch(orig_titles + descriptions)
+        translated = translated_items[:len(orig_titles)]
+        translated_descriptions = translated_items[len(orig_titles):]
 
-        for art, trans_title in zip(selected_newsapi, translated):
+        for art, trans_title, trans_desc in zip(selected_newsapi, translated, translated_descriptions):
+            # Nie pokazuj nagłówka po angielsku jako polski, jeśli tłumaczenie zawiodło.
+            if not _looks_polish(str(trans_title)):
+                logger.warning("Pominięto anglojęzyczny nagłówek bez tłumaczenia: %s", str(trans_title)[:80])
+                continue
             url = art.get("url", "").strip()
             pub_iso = _normalize_iso_date(art.get("publishedAt"), now_iso)
-            desc = _clean_html(art.get("description") or "") or trans_title
+            desc = _clean_html(trans_desc) if _looks_polish(str(trans_desc)) else trans_title
             seen_urls.add(url)
             all_articles.append({
                 "id": _hash_id(frontend_cat, url),
@@ -305,6 +381,7 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
                 "language": "pl",
             })
 
+    all_articles = [a for a in all_articles if _is_relevant(a, internal_cat)]
     all_articles.sort(key=lambda x: x.get("published_at", ""), reverse=True)
 
     if all_articles:
@@ -314,7 +391,6 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
 
 
 def _format_article_for_api(article: dict, frontend_cat: str) -> dict:
-    """Zapewnia spójny kontrakt JSON obsługujący zarówno camelCase (React), jak i snake_case."""
     url = article.get("url", "")
     art_id = article.get("id") or _hash_id(frontend_cat, url)
     pub = article.get("published_at") or article.get("publishedAt") or ""
@@ -336,12 +412,15 @@ def _format_article_for_api(article: dict, frontend_cat: str) -> dict:
 
 
 def get_news_full_payload(category: str, limit: int = 25, refresh: bool = False) -> dict:
-    """Zwraca wiadomości dla wybranej kategorii w formacie wymaganym przez frontend React."""
     internal_cat, frontend_cat = resolve_category(category)
 
-    articles = [] if refresh else get_news_from_silver(internal_cat, limit=limit)
+    articles = [] if refresh else _valid_cached_articles(internal_cat, limit)
     if not articles or len(articles) < 3:
-        articles = fetch_and_process_category(internal_cat)
+        fetched = fetch_and_process_category(internal_cat)
+        # Filtruj ponownie nawet gdy w cache wciąż pozostają stare niepoprawne rekordy.
+        articles = [a for a in fetched if _is_relevant(a, internal_cat)]
+        if not articles:
+            articles = _valid_cached_articles(internal_cat, limit)
 
     formatted_articles = [_format_article_for_api(a, frontend_cat) for a in articles[:limit]]
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -358,12 +437,11 @@ def get_news_full_payload(category: str, limit: int = 25, refresh: bool = False)
 
 
 def latest_news(symbol: str) -> NewsResponse:
-    """Obsługuje dotychczasowy endpoint GET /stock/news/{symbol}."""
     try:
         internal_cat, _ = resolve_category(symbol)
-        articles = get_news_from_silver(internal_cat, limit=25)
+        articles = _valid_cached_articles(internal_cat, 25)
         if not articles:
-            articles = fetch_and_process_category(internal_cat)
+            articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)]
     except ValueError:
         clean_sym = symbol.strip().upper()
         articles = get_news_from_silver(clean_sym.lower(), limit=15)
@@ -397,17 +475,12 @@ def latest_news(symbol: str) -> NewsResponse:
 
 
 def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
-    """
-    Generuje analizę AI (Gemini) na podstawie rzeczywistych artykułów z warstwy Silver
-    i zapisuje wynik w warstwie Gold Data Lake.
-    """
     internal_cat, frontend_cat = resolve_category(category)
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # 1. Pobieramy rzeczywiste artykuły z warstwy Silver (lub dociągamy, jeśli pusto)
-    articles = get_news_from_silver(internal_cat, limit=10)
+    articles = _valid_cached_articles(internal_cat, 10)
     if not articles:
-        articles = fetch_and_process_category(internal_cat)[:10]
+        articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)][:10]
 
     if not articles:
         return {
@@ -423,7 +496,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
 
     current_top_ids = [a.get("id") or _hash_id(frontend_cat, a.get("url", "")) for a in articles[:6]]
 
-    # 2. Sprawdzamy cache w warstwie Gold (ważny, dopóki zestaw artykułów się nie zmienił i ma < 30 min)
     if not refresh:
         cached = get_news_gold_analysis(internal_cat)
         if cached and isinstance(cached, dict) and cached.get("analyses"):
@@ -432,7 +504,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
                 cached["category"] = frontend_cat
                 return cached
 
-    # 3. Budujemy kontekst z prawdziwych artykułów dla modelu Gemini
     articles_context = []
     for idx, art in enumerate(articles[:6], start=1):
         art_id = art.get("id") or _hash_id(frontend_cat, art.get("url", ""))
@@ -542,14 +613,12 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
 
     except Exception as e:
         logger.error(f"Błąd analizy Gemini dla kategorii {frontend_cat}: {e}")
-        # Jeśli mamy starszą analizę w Gold, zwracamy ją z flagą fallback
         cached = get_news_gold_analysis(internal_cat)
         if cached and isinstance(cached, dict) and cached.get("analyses"):
             cached["category"] = frontend_cat
             cached["stale"] = True
             return cached
 
-        # Jawna informacja o niedostępności modelu AI oparta na prawdziwych pobranych artykułach
         default_markets = DEFAULT_MARKETS_BY_CATEGORY.get(internal_cat, ["Rynki finansowe"])
         fallback_analysis = {
             "id": f"{frontend_cat}-analysis-fallback",
@@ -563,8 +632,8 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
             "sentiment": "neutral",
             "riskLevel": "medium",
             "uncertainty": "medium",
-            "potentialImpact": "Wymagana ponowna próba analizy po zwolnieniu limitów API modelu językowego.",
-            "market_impact": "Wymagana ponowna próba analizy po zwolnieniu limitów API modelu językowego.",
+            "potentialImpact": "Wymagana ponowna próba analizy po zwolnieniu limitów API.",
+            "market_impact": "Wymagana ponowna próba analizy po zwolnieniu limitów API.",
             "sourceArticleIds": [a["id"] for a in articles_context[:3]],
         }
         return {
@@ -581,5 +650,4 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
 
 
 def analyze_news_sentiment(category: str) -> dict:
-    """Zachowanie kompatybilności wstecznej dla funkcji wewnętrznych."""
     return get_category_ai_analysis(category, refresh=False)

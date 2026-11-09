@@ -1,0 +1,2538 @@
+=========================================
+PLIK: app/ai/system_prompt.py
+=========================================
+SYSTEM_PROMPT = """
+Jesteś asystentem analitycznym platformy GeoMarket Intelligence.
+
+Twoim zadaniem jest pomagać użytkownikowi w:
+- analizie danych finansowych,
+- interpretacji wydarzeń gospodarczych i geopolitycznych,
+- korzystaniu z funkcji aplikacji,
+- odnajdywaniu odpowiednich zakładek i danych w systemie,
+- wyjaśnianiu, co oznaczają konkretne wskaźniki, wykresy, newsy i sygnały rynkowe.
+
+ZASADY KOMUNIKACJI:
+- NIGDY nie zaczynaj odpowiedzi od formułek powitalnych typu:
+  "Witaj, jestem asystentem GeoMarket Intelligence..."
+  Użytkownik już wie, z kim rozmawia.
+- Przechodź od razu do sedna pytania.
+- Odpowiadaj prostym, zrozumiałym językiem.
+- Nie używaj przesadnie długich wstępów.
+- Dopasowuj długość wypowiedzi do intencji użytkownika:
+  * Na krótkie pytania, powitania lub luźną rozmowę odpowiadaj zwięźle, najlepiej w 1-3 zdaniach.
+  * Na pytania dotyczące obsługi aplikacji odpowiadaj jasno i instruktażowo.
+  * Na pytania analityczne i merytoryczne odpowiadaj rzeczowo, zwykle w przedziale 150-300 słów.
+  * Jeśli użytkownik wprost poprosi o pełny raport, szczegółową analizę lub porównanie, przygotuj dłuższą odpowiedź.
+
+ZASADY ANALITYCZNE:
+- Analizuj dane finansowe, makroekonomiczne i wydarzenia geopolityczne w sposób profesjonalny, spokojny i obiektywny.
+- Opieraj odpowiedzi na informacjach przekazanych przez system.
+- Nie zmyślaj danych rynkowych, cen, zmian procentowych, wolumenów, kapitalizacji ani wskaźników makroekonomicznych.
+- Jeśli nie posiadasz wystarczających danych do precyzyjnej oceny, poinformuj o tym wprost.
+- Nie udawaj, że masz dostęp do danych, których system Ci nie przekazał.
+- Możesz wyjaśniać znaczenie wskaźników i możliwe konsekwencje rynkowe, ale wyraźnie rozdzielaj fakty od interpretacji.
+- Nie przedstawiaj swoich odpowiedzi jako rekomendacji inwestycyjnych.
+- Jeśli użytkownik pyta, czy warto kupić lub sprzedać dane aktywo, wyjaśnij sytuację, ryzyka i czynniki do obserwacji, ale nie dawaj jednoznacznej porady inwestycyjnej.
+
+STRUKTURA APLIKACJI GEOMARKET INTELLIGENCE:
+
+Aplikacja składa się z następujących głównych zakładek:
+
+1. Dashboard
+Dashboard jest stroną główną aplikacji.
+Znajdują się tam:
+- ogólny podgląd sytuacji rynkowej,
+- szybkie karty informacyjne,
+- sekcje z najważniejszymi danymi,
+- elementy związane z analizą AI,
+- skrótowy obraz tego, co dzieje się na rynku.
+
+Jeśli użytkownik pyta:
+- "gdzie zobaczę podsumowanie rynku?",
+- "gdzie jest główny widok?",
+- "gdzie sprawdzić najważniejsze informacje?",
+odpowiedz, że powinien wejść w zakładkę Dashboard.
+
+2. Newsy
+Zakładka Newsy służy do przeglądania informacji rynkowych i gospodarczych.
+Znajdują się tam:
+- wiadomości związane z rynkami,
+- newsy dotyczące gospodarki,
+- informacje geopolityczne,
+- możliwość przełączania się między wiadomościami a analizą AI,
+- analiza wpływu wydarzeń na rynek, jeśli system dostarczy takie dane.
+
+Jeśli użytkownik pyta:
+- "gdzie są aktualności?",
+- "gdzie sprawdzić newsy?",
+- "gdzie zobaczę wpływ wydarzeń na rynek?",
+odpowiedz, że powinien wejść w zakładkę Newsy.
+
+3. Kryptowaluty
+Zakładka Kryptowaluty służy do analizy rynku kryptowalut.
+Znajdują się tam:
+- lista kryptowalut,
+- podstawowe dane o kryptowalutach,
+- cena,
+- zmiana procentowa,
+- wykres,
+- panel szczegółów wybranej kryptowaluty,
+- możliwość dodawania kryptowalut do ulubionych po zalogowaniu.
+
+Jeśli użytkownik pyta:
+- "gdzie sprawdzę Bitcoina?",
+- "gdzie są kryptowaluty?",
+- "gdzie dodać kryptowalutę do ulubionych?",
+odpowiedz, że powinien wejść w zakładkę Kryptowaluty.
+
+4. Giełda
+Zakładka Giełda służy do analizy instrumentów giełdowych.
+Znajdują się tam:
+- lista instrumentów giełdowych,
+- spółki z rynku polskiego i zagranicznego,
+- cena,
+- zmiana procentowa,
+- wolumen,
+- kapitalizacja,
+- wykres ceny,
+- panel szczegółów wybranego instrumentu,
+- możliwość dodawania spółek do ulubionych za pomocą gwiazdki.
+
+W tabeli giełdowej:
+- symbol ☆ oznacza możliwość dodania do ulubionych,
+- symbol ★ oznacza, że instrument znajduje się już w ulubionych.
+
+Jeśli użytkownik pyta:
+- "gdzie sprawdzę akcje?",
+- "gdzie jest Apple, Orlen, PKO albo Nvidia?",
+- "gdzie zobaczę wykres spółki?",
+- "gdzie dodać spółkę do ulubionych?",
+odpowiedz, że powinien wejść w zakładkę Giełda.
+
+5. Makro
+Zakładka Makro służy do analizy danych makroekonomicznych.
+Znajdują się tam:
+- kursy walut,
+- inflacja,
+- stopy procentowe,
+- PKB,
+- wybrane surowce,
+- wartość wskaźnika,
+- zmiana procentowa,
+- opis wskaźnika,
+- wykres wybranego wskaźnika,
+- panel szczegółów,
+- możliwość dodawania wskaźników do ulubionych za pomocą gwiazdki.
+
+W tabeli makro:
+- symbol ☆ oznacza możliwość dodania wskaźnika do ulubionych,
+- symbol ★ oznacza, że wskaźnik znajduje się już w ulubionych.
+
+Jeśli użytkownik pyta:
+- "gdzie sprawdzę inflację?",
+- "gdzie jest kurs EUR/PLN?",
+- "gdzie są stopy procentowe?",
+- "gdzie sprawdzę PKB?",
+- "gdzie są surowce?",
+odpowiedz, że powinien wejść w zakładkę Makro.
+
+6. Ulubione
+Zakładka Ulubione jest dostępna po zalogowaniu.
+Znajdują się tam zapisane przez użytkownika:
+- instrumenty giełdowe,
+- kryptowaluty,
+- wskaźniki makroekonomiczne.
+
+Ulubione nie służą do zapisywania newsów.
+Zakładka Ulubione nie jest profilem użytkownika.
+
+Jeśli użytkownik pyta:
+- "gdzie są moje zapisane rzeczy?",
+- "gdzie znajdę ulubione?",
+- "gdzie są zapisane spółki?",
+- "gdzie są zapisane kryptowaluty?",
+- "gdzie są zapisane wskaźniki makro?",
+odpowiedz, że powinien wejść w zakładkę Ulubione.
+
+7. O projekcie
+Zakładka O projekcie opisuje cel i strukturę aplikacji.
+Znajdują się tam:
+- opis projektu,
+- założenia aplikacji,
+- informacje o funkcjach systemu,
+- ogólny opis architektury,
+- zakres odpowiedzialności zespołu.
+
+Jeśli użytkownik pyta:
+- "gdzie jest opis projektu?",
+- "gdzie sprawdzę założenia aplikacji?",
+- "gdzie jest informacja, kto za co odpowiada?",
+odpowiedz, że powinien wejść w zakładkę O projekcie.
+
+8. Chat AI
+Chat AI jest dostępny jako pływający przycisk w aplikacji.
+Nie znajduje się jako osobna zakładka w menu.
+Służy do zadawania pytań o:
+- dane widoczne w aplikacji,
+- rynki,
+- wydarzenia,
+- wskaźniki,
+- obsługę aplikacji,
+- znaczenie poszczególnych sekcji.
+
+Jeśli użytkownik pyta:
+- "gdzie jest bot?",
+- "gdzie mogę zadać pytanie AI?",
+- "jak uruchomić asystenta?",
+odpowiedz, że powinien użyć pływającego przycisku czatu AI.
+
+LOGOWANIE I ULUBIONE:
+- Użytkownik może przeglądać główne dane bez logowania.
+- Dodawanie do ulubionych wymaga zalogowania.
+- Po zalogowaniu pojawia się zakładka Ulubione.
+- Po wylogowaniu zakładka Ulubione może być ukryta lub niedostępna.
+- Jeśli użytkownik próbuje dodać element do ulubionych bez logowania, wyjaśnij, że musi się zalogować.
+- Nie mów o profilu użytkownika, ponieważ aplikacja nie posiada osobnej zakładki Profil.
+
+ZASADY POMOCY W OBSŁUDZE APLIKACJI:
+- Jeśli użytkownik pyta, gdzie coś znaleźć, wskaż konkretną zakładkę.
+- Jeśli użytkownik pyta, jak coś zrobić, opisz kroki po kolei.
+- Jeśli użytkownik pyta o ikonę ☆ lub ★, wyjaśnij:
+  * ☆ oznacza, że element można dodać do ulubionych,
+  * ★ oznacza, że element jest już zapisany w ulubionych.
+- Jeśli użytkownik pyta o wykres, wyjaśnij, że wykres znajduje się w panelu szczegółów po kliknięciu konkretnego instrumentu, kryptowaluty lub wskaźnika.
+- Jeśli użytkownik pyta o dane szczegółowe, powiedz, że należy kliknąć wybrany wiersz lub kartę.
+- Jeśli użytkownik pyta o zapisane elementy, skieruj go do zakładki Ulubione.
+
+PRZYKŁADY ODPOWIEDZI DOTYCZĄCYCH OBSŁUGI:
+
+Pytanie: "Gdzie sprawdzę Bitcoina?"
+Odpowiedź:
+"Bitcoin znajdziesz w zakładce Kryptowaluty. Po kliknięciu BTC zobaczysz szczegóły, zmianę procentową oraz wykres."
+
+Pytanie: "Gdzie jest inflacja?"
+Odpowiedź:
+"Inflację znajdziesz w zakładce Makro. W tabeli są wskaźniki CPI dla Polski, USA i strefy euro."
+
+Pytanie: "Jak dodać spółkę do ulubionych?"
+Odpowiedź:
+"Wejdź w zakładkę Giełda i kliknij symbol ☆ przy wybranej spółce. Po dodaniu symbol zmieni się na ★. Musisz być zalogowany."
+
+Pytanie: "Gdzie są moje zapisane rzeczy?"
+Odpowiedź:
+"Zapisane elementy znajdziesz w zakładce Ulubione. Są tam spółki, kryptowaluty i wskaźniki makroekonomiczne dodane przez użytkownika."
+
+Pytanie: "Co oznacza gwiazdka?"
+Odpowiedź:
+"☆ oznacza możliwość dodania elementu do ulubionych, a ★ oznacza, że element jest już zapisany."
+
+Pytanie: "Gdzie jest profil?"
+Odpowiedź:
+"Aplikacja nie posiada osobnej zakładki Profil. Dane zapisane przez użytkownika są dostępne w zakładce Ulubione."
+
+ZASADY ODPOWIADANIA NA PYTANIA ANALITYCZNE:
+- Gdy użytkownik pyta o konkretny instrument, odnieś się do danych dostępnych w systemie.
+- Jeśli system przekazuje cenę, zmianę procentową, wolumen lub kapitalizację, możesz je omówić.
+- Jeśli system nie przekazuje konkretnych danych, powiedz, że nie masz wystarczających informacji.
+- Wskazuj możliwe czynniki wpływające na rynek, ale nie twórz niepotwierdzonych liczb.
+- Nie udzielaj bezpośrednich rekomendacji inwestycyjnych.
+- Możesz używać sformułowań:
+  "może sugerować",
+  "warto obserwować",
+  "może zwiększać ryzyko",
+  "może wspierać pozytywny sentyment",
+  "na podstawie dostępnych danych".
+
+ZASADY BEZPIECZEŃSTWA I JAKOŚCI:
+- Nie zmyślaj funkcji, których aplikacja nie posiada.
+- Nie informuj użytkownika, że może korzystać z zakładki Profil, bo taka zakładka nie jest częścią docelowej struktury.
+- Nie twórz fikcyjnych danych rynkowych.
+- Nie obiecuj, że dane są w czasie rzeczywistym, jeśli system tego nie potwierdza.
+- Nie odpowiadaj zbyt ogólnie, jeśli użytkownik pyta o konkretną funkcję aplikacji.
+- Jeżeli pytanie jest niejasne, odpowiedz krótko i dopytaj o doprecyzowanie.
+
+CEL ASYSTENTA:
+Asystent ma działać jak przewodnik po aplikacji i analityk rynkowy.
+Ma pomagać użytkownikowi zrozumieć:
+- gdzie znaleźć konkretne dane,
+- jak działa aplikacja,
+- co oznaczają widoczne wskaźniki,
+- jak interpretować podstawowe sygnały rynkowe,
+- jak korzystać z ulubionych,
+- jak przechodzić między zakładkami.
+
+Odpowiedzi powinny być rzeczowe, praktyczne i dopasowane do kontekstu platformy GeoMarket Intelligence.
+"""
+=========================================
+PLIK: app/api/chat_routes.py
+=========================================
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+from app.models.chat import ChatRequest, ChatResponse
+from app.services.chat_service import process_message
+from app.services.finance_service import get_history
+
+# Łapiemy IP usera do pilnowania limitów
+limiter = Limiter(key_func=get_remote_address)
+
+router = APIRouter(prefix="/chat", tags=["AI Chat"])
+
+
+@router.post("", response_model=ChatResponse)
+@limiter.limit("15/minute")  # Limit ustawiony na sztywno: max 15 strzałów na minutę z jednego IP
+def chat(request: Request, chat_data: ChatRequest):
+    # 'request: Request' musi tu być, żeby limiter wiedział, kogo liczyć
+    # 'chat_data' to treść wiadomości, którą wysyła frontend
+    return process_message(chat_data)
+
+
+@router.get("/history/{symbol}")
+def history(symbol: str):
+    # Zwykłe pobieranie historii – to nie żre tokenów z Gemini, więc bez limitu
+    return get_history(symbol)
+=========================================
+PLIK: app/api/crypto_routes.py
+=========================================
+from fastapi import APIRouter
+from app.services.finance_service import get_stock
+
+router = APIRouter(prefix="/crypto", tags=["Crypto"])
+
+CRYPTO_SYMBOLS = {
+    "BTC": {"name": "Bitcoin", "ticker": "BTC-USD"},
+    "ETH": {"name": "Ethereum", "ticker": "ETH-USD"},
+    "USDT": {"name": "Tether", "ticker": "USDT-USD"},
+    "BNB": {"name": "BNB", "ticker": "BNB-USD"},
+    "SOL": {"name": "Solana", "ticker": "SOL-USD"},
+}
+
+
+@router.get(
+    "/table",
+    summary="Lista TOP kryptowalut do tabeli",
+    description="Zwraca aktualne kursy i zmiany dla głównych kryptowalut pod tabelę na frontendzie."
+)
+def crypto_table():
+    results = []
+    for rank, (coin, info) in enumerate(CRYPTO_SYMBOLS.items(), start=1):
+        try:
+            data = get_stock(info["ticker"])
+            d = data.model_dump() if hasattr(data, "model_dump") else dict(data)
+            results.append({
+                "rank": rank,
+                "symbol": coin,
+                "name": info["name"],
+                "price": d.get("current_price", 0.0),
+                "change24h": f"{d.get('change_percent', 0.0):+.2f}%",
+                "marketCap": d.get("market_cap", "N/D")
+            })
+        except Exception:
+            results.append({
+                "rank": rank,
+                "symbol": coin,
+                "name": info["name"],
+                "price": 0.0,
+                "change24h": "0.00%",
+                "marketCap": "N/D"
+            })
+    return results
+
+
+@router.get(
+    "/ai-impact",
+    summary="Wpływ wydarzeń na rynek krypto (AI Impact)",
+    description="Zwraca przeanalizowany wpływ ważnego wydarzenia na rynek kryptowalut."
+)
+def crypto_ai_impact():
+    return {
+        "event": "Nowe regulacje dotyczące rynku kryptowalut",
+        "affectedMarkets": "BTC, ETH, USDT",
+        "riskLevel": "Średnie",
+        "sentiment": "Neutralny",
+        "summary": "AI prognozuje zwiększoną zmienność na głównych kryptowalutach w obliczu zapowiedzi nowych ram prawnych.",
+        "showChart": True
+    }
+
+
+@router.get(
+    "/{symbol}",
+    summary="Podstawowe dane pojedynczej kryptowaluty",
+    description="Zwraca aktualną cenę i zmianę dla wybranej kryptowaluty."
+)
+def crypto_data(symbol: str):
+    clean = symbol.upper().replace("-USD", "")
+    info = CRYPTO_SYMBOLS.get(clean, {"name": clean, "ticker": f"{clean}-USD"})
+
+    try:
+        data = get_stock(info["ticker"])
+        d = data.model_dump() if hasattr(data, "model_dump") else dict(data)
+        return {
+            "name": info["name"],
+            "symbol": clean,
+            "price": f"${d.get('current_price', 0.0):,.2f}",
+            "change": f"{d.get('change_percent', 0.0):+.2f}%",
+            "category": "crypto"
+        }
+    except Exception:
+        return {
+            "name": clean,
+            "symbol": clean,
+            "price": "Brak danych",
+            "change": "0.00%",
+            "category": "crypto"
+        }
+
+=========================================
+PLIK: app/api/router.py
+=========================================
+from fastapi import APIRouter
+
+from app.api.chat_routes import router as chat_router
+from app.api.stock_routes import router as stock_router
+from app.api.crypto_routes import router as crypto_router  # Dołączamy moduł krypto
+
+router = APIRouter()
+
+
+@router.get("/")
+def root():
+    # Szybki strzał na główny adres – potwierdzenie, że serwer żyje
+    return {
+        "message": "GeoMarket Intelligence AI działa!"
+    }
+
+
+@router.get("/health")
+def health():
+    # Sprawdzenie statusu serwera (wymagane przez Kamila do testów)
+    return {
+        "status": "OK"
+    }
+
+
+# Wpinamy wszystkie routery w jedno miejsce
+router.include_router(chat_router)
+router.include_router(stock_router)
+router.include_router(crypto_router)  # Trasa dla kryptowalut podpięta
+=========================================
+PLIK: app/api/stock_routes.py
+=========================================
+from fastapi import APIRouter
+
+from app.models.stock import (
+    StockResponse,
+    MacroAnalysisResponse,
+    AIImpactResponse
+)
+from app.models.news import NewsResponse, NewsSentimentResponse
+from app.services.finance_service import get_stock, get_history
+from app.services.analysis_service import (
+    analyze_stock, 
+    analyze_news_sentiment, 
+    generate_full_investment_report,
+    generate_dynamic_ai_impact
+)
+from app.services.chart_service import get_chart
+from app.services.news_service import latest_news
+from app.services.macro_service import get_current_macro_summary, analyze_macro_environment
+
+router = APIRouter(prefix="/stock")
+
+TOP_STOCKS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA"]
+
+
+# ---------------------------------------------------------
+# 1. AI ANALYSIS (Wykorzystanie modelu Gemini)
+# ---------------------------------------------------------
+@router.get(
+    "/ai-impact", 
+    response_model=AIImpactResponse, 
+    tags=["AI Analysis"],
+    summary="Wpływ wydarzeń na rynki (AI Impact)",
+    description="Dynamicznie analizuje wpływ bieżących wydarzeń rynkowo-geopolitycznych za pomocą modelu Gemini."
+)
+def ai_impact():
+    return generate_dynamic_ai_impact("geopolityka")
+
+
+@router.get(
+    "/macro/analysis", 
+    response_model=MacroAnalysisResponse, 
+    tags=["AI Analysis"],
+    summary="Analiza makroekonomiczna (Gemini)",
+    description="Pobiera najnowsze dane FRED (PKB, inflacja r/r, stopy), przekazuje je do Gemini i zwraca syntetyczną ocenę stanu gospodarki."
+)
+def macro_analysis():
+    return {
+        "analysis": analyze_macro_environment(),
+        "source_data_summary": get_current_macro_summary()
+    }
+
+
+@router.get(
+    "/analyze/{symbol}", 
+    tags=["AI Analysis"],
+    summary="Analiza wybranej spółki (Gemini)",
+    description="Pobiera wskaźniki spółki i ocenia jej kondycję fundamentalną za pomocą AI (zgodnie z zasadą bez porad inwestycyjnych)."
+)
+def analyze(symbol: str):
+    return {
+        "analysis": analyze_stock(symbol)
+    }
+
+
+@router.get(
+    "/news/{symbol}/sentiment", 
+    response_model=NewsSentimentResponse, 
+    tags=["AI Analysis"],
+    summary="Sentyment najnowszych wiadomości",
+    description="Pobiera nagłówki prasowe z NewsAPI/RSS, a AI ocenia ich wydźwięk rynkowy (pozytywny, negatywny lub neutralny)."
+)
+def news_sentiment(symbol: str):
+    return analyze_news_sentiment(symbol)
+
+
+@router.get(
+    "/report/{symbol}", 
+    tags=["AI Analysis"],
+    summary="Pełny raport inwestycyjny",
+    description="Generuje zwięzły raport analityczny łącząc dane giełdowe, makroekonomię i newsy przy użyciu modelu Gemini z pamięcią podręczną cache."
+)
+def report(symbol: str):
+    return {
+        "report": generate_full_investment_report(symbol)
+    }
+
+
+# ---------------------------------------------------------
+# 2. MACROECONOMICS (Dane z FRED z warstwy Gold)
+# ---------------------------------------------------------
+@router.get(
+    "/macro/raw", 
+    tags=["Macroeconomics"],
+    summary="Surowe wskaźniki gospodarcze (FRED)",
+    description="Zwraca najnowsze wskaźniki makroekonomiczne (dynamika PKB, inflacja r/r, stopy FED) z warstwy Data Lake."
+)
+def macro_raw():
+    return get_current_macro_summary()
+
+
+# ---------------------------------------------------------
+# 3. MARKET DATA (Twarde dane z Yahoo Finance, Parquet, Plotly)
+# ---------------------------------------------------------
+@router.get(
+    "/overview/table",
+    tags=["Market Data"],
+    summary="Lista spółek do głównej tabeli giełdowej",
+    description="Zwraca zbiorcze zestawienie spółek technologicznych pod tabelę frontendu w jednym zapytaniu HTTP."
+)
+def stock_table():
+    overview = []
+    for sym in TOP_STOCKS:
+        try:
+            data = get_stock(sym)
+            d = data.model_dump() if hasattr(data, "model_dump") else dict(data)
+            overview.append(d)
+        except Exception:
+            pass
+    return overview
+
+
+@router.get(
+    "/history/{symbol}", 
+    tags=["Market Data"],
+    summary="Historia notowań (Tabela)",
+    description="Zwraca historię notowań (daty, ceny OHLC) pod tabele i zestawienia historyczne."
+)
+def history(symbol: str):
+    return get_history(symbol)
+
+
+@router.get(
+    "/chart/{symbol}", 
+    tags=["Market Data"],
+    summary="Dane wykresu (Plotly JSON)",
+    description="Zwraca strukturę JSON przygotowaną bezpośrednio pod bibliotekę react-plotly.js."
+)
+def chart(symbol: str):
+    return get_chart(symbol)
+
+
+@router.get(
+    "/{symbol}", 
+    response_model=StockResponse, 
+    tags=["Market Data"],
+    summary="Podstawowe dane giełdowe",
+    description="Zwraca aktualną cenę, nazwę spółki i bazowe metryki w czasie rzeczywistym z Yahoo Finance."
+)
+def stock(symbol: str):
+    return get_stock(symbol)
+
+
+# ---------------------------------------------------------
+# 4. MARKET NEWS (Wiadomości z NewsAPI / RSS)
+# ---------------------------------------------------------
+@router.get(
+    "/news/{symbol}", 
+    response_model=NewsResponse, 
+    tags=["Market News"],
+    summary="Najnowsze artykuły z NewsAPI / RSS",
+    description="Zwraca listę nagłówków i odnośników do artykułów dla podanej kategorii lub spółki."
+)
+def news(symbol: str):
+    return latest_news(symbol)
+=========================================
+PLIK: app/api/__init__.py
+=========================================
+
+=========================================
+PLIK: app/auth_excel.py
+=========================================
+"""Temporary Excel authentication for local development only.
+Not designed for concurrent servers or production deployment.
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import json
+import os
+import secrets
+import tempfile
+import threading
+import time
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from pydantic import BaseModel, Field
+from openpyxl import Workbook, load_workbook
+
+router = APIRouter(prefix="/auth", tags=["Temporary Excel Auth"])
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+USERS_PATH = DATA_DIR / "geomarket_users.xlsx"
+SECRET_PATH = DATA_DIR / ".auth_secret"
+LOCK = threading.RLock()
+SESSION_SECONDS = 8 * 60 * 60
+
+
+def get_secret() -> bytes:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if not SECRET_PATH.exists():
+        try:
+            fd = os.open(SECRET_PATH, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            pass
+        else:
+            with os.fdopen(fd, "wb") as f:
+                f.write(secrets.token_bytes(32))
+    return SECRET_PATH.read_bytes()
+
+
+def ensure_users_file():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if not USERS_PATH.exists():
+        wb = Workbook()
+        sheet = wb.active
+        sheet.title = "Users"
+        sheet.append(["user_id", "name", "email", "password_hash", "created_at"])
+        wb.save(USERS_PATH)
+
+
+def get_users():
+    ensure_users_file()
+    wb = load_workbook(USERS_PATH, read_only=True, data_only=True)
+    try:
+        sheet = wb["Users"]
+        records = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            if row[0] and row[2]:
+                records.append(dict(zip(
+                    ["user_id", "name", "email", "password_hash", "created_at"], row[:5]
+                )))
+        return records
+    finally:
+        wb.close()
+
+
+def append_user(user):
+    ensure_users_file()
+    wb = load_workbook(USERS_PATH)
+    try:
+        wb["Users"].append([user[k] for k in [
+            "user_id", "name", "email", "password_hash", "created_at"
+        ]])
+        with tempfile.NamedTemporaryFile(dir=DATA_DIR, suffix=".xlsx", delete=False) as f:
+            tmp = Path(f.name)
+        try:
+            wb.save(tmp)
+            os.replace(tmp, USERS_PATH)
+        finally:
+            tmp.unlink(missing_ok=True)
+    finally:
+        wb.close()
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    rounds = 600_000
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, rounds)
+    return f"pbkdf2_sha256${rounds}${salt.hex()}${derived.hex()}"
+
+
+def check_password(password: str, stored: str) -> bool:
+    try:
+        scheme, count, salt_hex, digest_hex = str(stored).split("$")
+        if scheme != "pbkdf2_sha256":
+            return False
+        check = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), bytes.fromhex(salt_hex), int(count)
+        )
+        return hmac.compare_digest(check, bytes.fromhex(digest_hex))
+    except (ValueError, TypeError):
+        return False
+
+
+def b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def unb64url(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def make_token(user_id: str) -> str:
+    data = {"sub": user_id, "iat": int(time.time()), "exp": int(time.time()) + SESSION_SECONDS}
+    payload = b64url(json.dumps(data, separators=(",", ":")).encode())
+    signature = b64url(hmac.new(get_secret(), payload.encode(), hashlib.sha256).digest())
+    return f"{payload}.{signature}"
+
+
+def token_to_user_id(token: str) -> str:
+    try:
+        payload, signature = token.split(".")
+        expected = b64url(hmac.new(get_secret(), payload.encode(), hashlib.sha256).digest())
+        if not hmac.compare_digest(signature, expected):
+            raise ValueError("invalid signature")
+        data = json.loads(unb64url(payload))
+        if data.get("exp", 0) <= int(time.time()) or not isinstance(data.get("sub"), str):
+            raise ValueError("expired or invalid")
+        return data["sub"]
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        raise HTTPException(status_code=401, detail="Sesja wygasła. Zaloguj się ponownie.")
+
+
+def public_user(user):
+    return {"id": user["user_id"], "name": user["name"], "email": user["email"]}
+
+
+class RegisterBody(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class LoginBody(BaseModel):
+    email: str
+    password: str
+
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+def register(body: RegisterBody):
+    email = body.email.strip().lower()
+    if "@" not in email or "." not in email.rsplit("@", 1)[-1]:
+        raise HTTPException(status_code=422, detail="Podaj poprawny adres e-mail.")
+    with LOCK:
+        if any(str(u["email"]).lower() == email for u in get_users()):
+            raise HTTPException(status_code=409, detail="Konto z tym adresem już istnieje.")
+        user = {
+            "user_id": str(uuid.uuid4()),
+            "name": body.name.strip(),
+            "email": email,
+            "password_hash": hash_password(body.password),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        append_user(user)
+    return {"user": public_user(user), "access_token": make_token(user["user_id"]), "token_type": "bearer"}
+
+
+@router.post("/login")
+def login(body: LoginBody):
+    email = body.email.strip().lower()
+    with LOCK:
+        user = next((u for u in get_users() if str(u["email"]).lower() == email), None)
+    if not user or not check_password(body.password, str(user["password_hash"])):
+        raise HTTPException(status_code=401, detail="Nieprawidłowy e-mail lub hasło.")
+    return {"user": public_user(user), "access_token": make_token(str(user["user_id"])), "token_type": "bearer"}
+
+
+def current_user(authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Wymagane logowanie.")
+    user_id = token_to_user_id(authorization[len("Bearer "):])
+    with LOCK:
+        user = next((u for u in get_users() if str(u["user_id"]) == user_id), None)
+    if not user:
+        raise HTTPException(status_code=401, detail="Nie znaleziono użytkownika.")
+    return public_user(user)
+
+
+@router.get("/me")
+def me(user: dict = Depends(current_user)):
+    return {"user": user}
+
+
+@router.post("/logout")
+def logout():
+    # In this local prototype, logout removes token on the frontend.
+    # Stateless tokens cannot be revoked before expiry without a denylist.
+    return {"message": "Usuń token po stronie aplikacji."}
+
+=========================================
+PLIK: app/config/settings.py
+=========================================
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
+class Settings:
+    APP_NAME = os.getenv("APP_NAME")
+    APP_VERSION = os.getenv("APP_VERSION")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+    FRED_API_KEY = os.getenv("FRED_API_KEY")
+
+
+settings = Settings()
+=========================================
+PLIK: app/data_sources/fred.py
+=========================================
+import requests
+from app.config.settings import settings
+
+SERIES_CONFIG = {
+    "GDP": {
+        "id": "GDP",
+        "units": "pc1",  # Percent Change from Year Ago (% r/r)
+        "description": "Dynamika PKB USA (% r/r)"
+    },
+    "INFLATION": {
+        "id": "CPIAUCSL",
+        "units": "pc1",  # Inflacja konsumencka CPI (% r/r)
+        "description": "Inflacja CPI USA (% r/r)"
+    },
+    "INTEREST_RATE": {
+        "id": "FEDFUNDS",
+        "units": "lin",  # Poziom stóp procentowych FED (%)
+        "description": "Stopa funduszy federalnych FED (%)"
+    }
+}
+
+
+def get_macro_indicator(series_key: str, limit: int = 12) -> dict:
+    """
+    Pobiera najświeższe odczyty z FRED API (sort_order=desc)
+    oraz historię obserwacji dla warstw Data Lake.
+    """
+    cfg = SERIES_CONFIG.get(series_key.upper(), {"id": series_key, "units": "lin"})
+    series_id = cfg["id"]
+    units = cfg.get("units", "lin")
+
+    url = "https://api.stlouisfed.org/fred/series/observations"
+    params = {
+        "series_id": series_id,
+        "api_key": settings.FRED_API_KEY.strip() if settings.FRED_API_KEY else "",
+        "file_type": "json",
+        "sort_order": "desc",  # Pobieramy od najnowszych
+        "units": units,
+        "limit": limit
+    }
+    
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json().get("observations", [])
+        
+        valid_obs = [obs for obs in data if obs.get("value") and obs.get("value") != "."]
+        
+        if valid_obs:
+            latest = valid_obs[0]  # Przy sort_order=desc indeks 0 to najświeższy odczyt
+            val_float = round(float(latest["value"]), 2)
+            
+            history_list = [
+                {"date": o["date"], "value": round(float(o["value"]), 2)}
+                for o in reversed(valid_obs)
+            ]
+            
+            return {
+                "date": latest["date"],
+                "value": str(val_float),
+                "history": history_list
+            }
+    except Exception as e:
+        print(f"[FRED API WARNING] Nie udało się pobrać {series_key} ({series_id}): {e}")
+        
+    return {"date": "N/A", "value": "N/A", "history": []}
+=========================================
+PLIK: app/data_sources/news.py
+=========================================
+import requests
+from app.config.settings import settings
+
+def get_news(query: str, page_size: int = 5):
+    url = "https://newsapi.org/v2/everything"
+    
+    params = {
+        "q": query,
+        "language": "en",
+        "sortBy": "publishedAt",
+        "pageSize": page_size,
+        "apiKey": settings.NEWS_API_KEY, 
+    }
+    
+    # Dodajemy timeout=5 (maksymalnie 5 sekund oczekiwania)
+    response = requests.get(url, params=params, timeout=5)
+    response.raise_for_status()
+    
+    return response.json().get("articles", [])
+=========================================
+PLIK: app/data_sources/yahoo.py
+=========================================
+import yfinance as yf
+
+
+def get_stock_data(symbol: str):
+    ticker = yf.Ticker(symbol)
+
+    info = ticker.info
+    history = ticker.history(period="1mo")
+
+    return {
+        "symbol": symbol.upper(),
+        "company": info.get("longName"),
+        "sector": info.get("sector"),
+        "industry": info.get("industry"),
+        "current_price": info.get("currentPrice"),
+        "previous_close": info.get("previousClose"),
+        "day_high": info.get("dayHigh"),
+        "day_low": info.get("dayLow"),
+        "market_cap": info.get("marketCap"),
+        "pe_ratio": info.get("trailingPE"),
+        "currency": info.get("currency"),
+        "history": history.reset_index().to_dict(orient="records"),
+        
+    }
+def get_stock_history(symbol: str, period: str = "1mo"):
+    ticker = yf.Ticker(symbol)
+
+    history = ticker.history(period=period)
+
+    history.reset_index(inplace=True)
+
+    return history
+=========================================
+PLIK: app/main.py
+=========================================
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from app.api.router import router
+from app.config.settings import settings
+from app.services.scheduler import start_scheduler
+
+# Tworzymy limiter, który będzie łapał gości po ich IP
+limiter = Limiter(key_func=get_remote_address)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Odpalamy schedulera w tle zaraz po starcie serwera, żeby dane same się zasysały
+    start_scheduler()
+    yield
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    lifespan=lifespan
+)
+
+# Podpinamy limiter pod całą apkę i ustawiamy ładne łapanie błędów, jak ktoś przesadzi z zapytaniami
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Otwieramy bramy dla Reacta, żeby na frontendzie nie wywalało błędów CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Na razie wpuszczamy wszystkich, ale trzeba to będzie potem uciąć
+    allow_credentials=True,
+    allow_methods=["*"],  # Puszczamy wszystko jak leci (GET, POST itd.)
+    allow_headers=["*"],  # Nagłówki też przepuszczamy bez marudzenia
+)
+
+app.include_router(router)
+=========================================
+PLIK: app/models/chat.py
+=========================================
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="Rola: 'user' lub 'model'")
+    content: str = Field(..., description="Treść wiadomości")
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="Treść wiadomości / zapytania")
+    symbol: Optional[str] = Field(None, description="Opcjonalny symbol spółki jako kontekst")
+    history: Optional[List[ChatMessage]] = Field(default=[], description="Historia konwersacji")
+
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., description="Odpowiedź wygenerowana przez model AI")
+=========================================
+PLIK: app/models/news.py
+=========================================
+from pydantic import BaseModel, Field
+from typing import List
+
+# --- PODSTAWOWE MODEL-E DLA NEWSÓW ---
+class NewsArticle(BaseModel):
+    title: str
+    source: str
+    published: str
+    url: str
+
+class NewsResponse(BaseModel):
+    articles: List[NewsArticle]
+
+
+# --- MODEL-E DLA ANALIZY SENTYMENTU GEMINI ---
+class SentimentResult(BaseModel):
+    title: str
+    sentiment: str = Field(description="Ocena: Pozytywny, Neutralny lub Negatywny")
+    justification: str = Field(description="Max 1 zdanie uzasadnienia")
+
+class NewsSentimentResponse(BaseModel):
+    symbol: str
+    overall_sentiment: str = Field(description="Ogólny sentyment: Pozytywny, Neutralny lub Negatywny")
+    analysis: List[SentimentResult]
+=========================================
+PLIK: app/models/stock.py
+=========================================
+from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional
+
+
+# Twój oryginalny model danych dla spółki giełdowej
+class StockResponse(BaseModel):
+    symbol: str
+    company: str | None = None
+    sector: str | None = None
+    industry: str | None = None
+    current_price: float | None = None
+    previous_close: float | None = None
+    day_high: float | None = None
+    day_low: float | None = None
+    market_cap: int | None = None
+    pe_ratio: float | None = None
+    currency: str | None = None
+
+
+# Raport analityczny generowany przez AI dla spółki
+class StockReportResponse(BaseModel):
+    symbol: str = Field(..., example="AAPL")
+    company_name: str = Field(..., example="Apple Inc.")
+    current_price: float = Field(..., example=224.23)
+    currency: str = Field(..., example="USD")
+    summary: str = Field(..., example="Krótkie podsumowanie kondycji spółki...")
+    key_metrics: Dict[str, Any]
+
+
+# Analiza makroekonomiczna
+class MacroAnalysisResponse(BaseModel):
+    analysis: str = Field(..., example="Podsumowanie sytuacji makroekonomicznej...")
+    source_data_summary: Dict[str, Any]
+
+
+# 1. Kafelki rynkowe (np. Bitcoin, EUR/PLN)
+class MarketAssetItem(BaseModel):
+    name: str = Field(..., example="Bitcoin")
+    value: str = Field(..., example="267 540 PLN")
+    change: str = Field(..., example="+2.45%")
+    category: str = Field(..., example="crypto")
+
+
+# 2. Sekcja AI Impact (Analiza geopolityczna/rynkowa od Kamila)
+class AIImpactResponse(BaseModel):
+    event: str = Field(..., example="Nowe napięcia geopolityczne na Bliskim Wschodzie")
+    affectedMarkets: str = Field(..., example="EUR/PLN, ropa, WIG20")
+    riskLevel: str = Field(..., example="Wysokie")
+    sentiment: str = Field(..., example="Negatywny")
+    summary: str = Field(..., example="AI wskazuje, że wydarzenie może zwiększyć zmienność na rynku...")
+    showChart: bool = Field(True, example=True)
+
+
+# 3. Punkty scenariusza dla wykresów AI
+class ChartPoint(BaseModel):
+    date: str = Field(..., example="Pon")
+    current: float = Field(..., example=4.31)
+    aiScenario: float = Field(..., example=4.35)
+=========================================
+PLIK: app/password_reset.py
+=========================================
+
+"""Password reset for GeoMarket Intelligence.
+
+Password recovery using Resend and the existing Excel authentication system.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import html
+import json
+import logging
+import os
+import secrets
+import tempfile
+import time
+
+from pathlib import Path
+from urllib.parse import quote
+
+import httpx
+from dotenv import load_dotenv
+
+from fastapi import APIRouter, HTTPException
+from openpyxl import load_workbook
+from pydantic import BaseModel, Field
+
+from app.auth_excel import (
+    DATA_DIR,
+    USERS_PATH,
+    LOCK,
+    get_users,
+    hash_password,
+)
+
+
+# ============================================================
+# AUTOMATYCZNE WCZYTYWANIE KONFIGURACJI
+# ============================================================
+
+# Lokalizacja pliku: backend-ai/.env
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+
+load_dotenv(BACKEND_ROOT / ".env")
+
+
+# ============================================================
+# KONFIGURACJA
+# ============================================================
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["Password Reset"],
+)
+
+logger = logging.getLogger(__name__)
+
+RESET_PATH = DATA_DIR / ".password_reset_tokens.json"
+
+RESET_TTL_SECONDS = 15 * 60
+RESET_COOLDOWN_SECONDS = 60
+
+RESET_HISTORY: dict[str, float] = {}
+
+PUBLIC_MESSAGE = (
+    "Jeśli konto istnieje, wyślemy link do zmiany hasła. "
+    "Sprawdź swoją pocztę."
+)
+
+
+# ============================================================
+# MODELE DANYCH
+# ============================================================
+
+class ForgotPasswordBody(BaseModel):
+    email: str = Field(
+        min_length=3,
+        max_length=254,
+    )
+
+
+class ResetPasswordBody(BaseModel):
+    token: str = Field(
+        min_length=20,
+        max_length=300,
+    )
+
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+    )
+
+
+# ============================================================
+# ODCZYT TOKENÓW RESETOWANIA
+# ============================================================
+
+def _read_tokens() -> dict:
+    if not RESET_PATH.exists():
+        return {}
+
+    try:
+        data = json.loads(
+            RESET_PATH.read_text(encoding="utf-8")
+        )
+
+        return data if isinstance(data, dict) else {}
+
+    except (ValueError, OSError):
+        logger.exception(
+            "Nie udało się odczytać tokenów resetowania."
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail="Usługa resetowania jest chwilowo niedostępna.",
+        )
+
+
+# ============================================================
+# ZAPIS TOKENÓW
+# ============================================================
+
+def _atomic_write_tokens(data: dict) -> None:
+    DATA_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with tempfile.NamedTemporaryFile(
+        dir=DATA_DIR,
+        suffix=".json",
+        mode="w",
+        encoding="utf-8",
+        delete=False,
+    ) as file:
+        tmp = Path(file.name)
+        json.dump(data, file)
+
+    try:
+        os.replace(tmp, RESET_PATH)
+
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+# ============================================================
+# WYSYŁANIE WIADOMOŚCI PRZEZ RESEND
+# ============================================================
+
+def _send_reset_email(email: str, link: str) -> None:
+    api_key = os.environ.get(
+        "RESEND_API_KEY", ""
+    ).strip()
+
+    sender = os.environ.get(
+        "RESEND_FROM_EMAIL", ""
+    ).strip()
+
+    if not api_key or not sender:
+        raise RuntimeError(
+            "Brak konfiguracji RESEND_API_KEY lub RESEND_FROM_EMAIL."
+        )
+
+    safe_link = html.escape(
+        link,
+        quote=True,
+    )
+
+    payload = {
+        "from": sender,
+        "to": [email],
+        "subject": "GeoMarket - resetowanie hasła",
+        "html": (
+            "<p>Otrzymaliśmy prośbę o zmianę hasła "
+            "do konta GeoMarket Intelligence.</p>"
+            f'<p><a href="{safe_link}">'
+            "Ustaw nowe hasło"
+            "</a></p>"
+            "<p>Link jest ważny przez 15 minut "
+            "i może zostać wykorzystany tylko raz.</p>"
+            "<p>Jeżeli nie prosiłeś o zmianę hasła, "
+            "zignoruj tę wiadomość.</p>"
+        ),
+        "text": (
+            "Otrzymaliśmy prośbę o zmianę hasła.\n"
+            f"Ustaw nowe hasło: {link}\n"
+            "Link jest ważny przez 15 minut "
+            "i może zostać wykorzystany tylko raz."
+        ),
+    }
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    logger.info(
+        "Próba wysłania wiadomości resetującej."
+    )
+
+    try:
+        with httpx.Client(
+            timeout=15.0,
+            trust_env=True,
+            follow_redirects=False,
+        ) as client:
+            response = client.post(
+                "https://api.resend.com/emails",
+                headers=headers,
+                json=payload,
+            )
+
+    except httpx.RequestError as error:
+        logger.error(
+            "Błąd połączenia z Resend: %s",
+            type(error).__name__,
+        )
+
+        raise RuntimeError(
+            "Nie udało się połączyć z Resend."
+        ) from error
+
+    if 200 <= response.status_code < 300:
+        logger.warning(
+            "SUKCES: Resend zaakceptował wiadomość. HTTP %s",
+            response.status_code,
+        )
+        return
+
+    logger.error(
+        "RESEND ERROR: HTTP %s | %s",
+        response.status_code,
+        response.text[:2000],
+    )
+
+    raise RuntimeError(
+        f"Resend rejected email: HTTP {response.status_code}"
+    )
+
+
+# ============================================================
+# PROŚBA O ODZYSKANIE HASŁA
+# POST /auth/forgot-password
+# ============================================================
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordBody):
+    email = body.email.strip().lower()
+
+    with LOCK:
+        now = time.time()
+
+        if (
+            now - RESET_HISTORY.get(email, 0)
+            < RESET_COOLDOWN_SECONDS
+        ):
+            return {
+                "message": PUBLIC_MESSAGE
+            }
+
+        RESET_HISTORY[email] = now
+
+        user = next(
+            (
+                u
+                for u in get_users()
+                if str(u["email"]).strip().lower() == email
+            ),
+            None,
+        )
+
+        if user is None:
+            return {
+                "message": PUBLIC_MESSAGE
+            }
+
+        if (
+            not os.environ.get("RESEND_API_KEY")
+            or not os.environ.get("RESEND_FROM_EMAIL")
+        ):
+            logger.error(
+                "Wysyłanie wiadomości resetującej "
+                "nie zostało skonfigurowane."
+            )
+
+            return {
+                "message": PUBLIC_MESSAGE
+            }
+
+        token = secrets.token_urlsafe(32)
+
+        token_hash = hashlib.sha256(
+            token.encode("utf-8")
+        ).hexdigest()
+
+        tokens = _read_tokens()
+
+        tokens = {
+            key: value
+            for key, value in tokens.items()
+            if (
+                float(value.get("expires", 0)) > now
+                and str(value.get("user_id"))
+                != str(user["user_id"])
+            )
+        }
+
+        tokens[token_hash] = {
+            "user_id": str(user["user_id"]),
+            "expires": now + RESET_TTL_SECONDS,
+        }
+
+        _atomic_write_tokens(tokens)
+
+    # ========================================================
+    # GENEROWANIE LINKU DO FORMULARZA
+    # ========================================================
+
+    frontend_url = os.environ.get(
+        "FRONTEND_URL",
+        "http://localhost:5173",
+    ).rstrip("/")
+
+    link = (
+        f"{frontend_url}/reset-password"
+        f"?token={quote(token)}"
+    )
+
+    # ========================================================
+    # WYSYŁANIE WIADOMOŚCI
+    # ========================================================
+
+    try:
+        _send_reset_email(email, link)
+
+    except Exception:
+        logger.exception(
+            "Nie udało się wysłać wiadomości resetującej."
+        )
+
+        with LOCK:
+            tokens = _read_tokens()
+            tokens.pop(token_hash, None)
+            _atomic_write_tokens(tokens)
+
+    return {
+        "message": PUBLIC_MESSAGE
+    }
+
+
+# ============================================================
+# USTAWIENIE NOWEGO HASŁA
+# POST /auth/reset-password
+# ============================================================
+
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordBody):
+    token_hash = hashlib.sha256(
+        body.token.encode("utf-8")
+    ).hexdigest()
+
+    with LOCK:
+        tokens = _read_tokens()
+
+        entry = tokens.get(token_hash)
+
+        if (
+            not entry
+            or float(entry.get("expires", 0)) <= time.time()
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Link jest nieprawidłowy lub wygasł. "
+                    "Poproś o nowy."
+                ),
+            )
+
+        user_id = str(entry["user_id"])
+
+        users = get_users()
+
+        if not any(
+            str(user["user_id"]) == user_id
+            for user in users
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Link jest nieprawidłowy lub wygasł. "
+                    "Poproś o nowy."
+                ),
+            )
+
+        new_hash = hash_password(body.password)
+
+        # ====================================================
+        # ZAPIS NOWEGO HASŁA W EXCELU
+        # ====================================================
+
+        wb = load_workbook(USERS_PATH)
+
+        try:
+            sheet = wb["Users"]
+
+            changed = False
+
+            for row in sheet.iter_rows(min_row=2):
+                if str(row[0].value) == user_id:
+                    row[3].value = new_hash
+                    changed = True
+                    break
+
+            if not changed:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Nie znaleziono konta.",
+                )
+
+            with tempfile.NamedTemporaryFile(
+                dir=DATA_DIR,
+                suffix=".xlsx",
+                delete=False,
+            ) as file:
+                tmp = Path(file.name)
+
+            try:
+                wb.save(tmp)
+                os.replace(tmp, USERS_PATH)
+
+            finally:
+                tmp.unlink(missing_ok=True)
+
+        finally:
+            wb.close()
+
+        # Unieważnienie wykorzystanych tokenów resetowania.
+        tokens = {
+            key: value
+            for key, value in tokens.items()
+            if str(value.get("user_id")) != user_id
+        }
+
+        _atomic_write_tokens(tokens)
+
+    return {
+        "message": (
+            "Hasło zostało zmienione. "
+            "Możesz się zalogować."
+        )
+    }
+
+=========================================
+PLIK: app/services/analysis_service.py
+=========================================
+from functools import lru_cache
+import json
+from google import genai
+from google.genai import types
+
+from app.ai.system_prompt import SYSTEM_PROMPT
+from app.config.settings import settings
+from app.data_sources.yahoo import get_stock_data
+from app.services.news_service import latest_news
+from app.services.macro_service import get_current_macro_summary
+from app.models.news import NewsSentimentResponse
+from app.models.stock import AIImpactResponse
+
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+DISCLAIMER = "\n\n---\n*Zastrzeżenie: Prezentowane analizy mają charakter wyłącznie informacyjno-edukacyjny i nie stanowią rekomendacji inwestycyjnych w rozumieniu przepisów prawa.*"
+
+
+def analyze_stock(symbol: str) -> str:
+    data = get_stock_data(symbol)
+
+    prompt = f"""
+{SYSTEM_PROMPT}
+
+Odpowiedz maksymalnie w 250-300 słowach.
+
+Na podstawie poniższych danych przygotuj profesjonalną analizę spółki.
+
+Dane spółki:
+Nazwa: {data.get('company')}
+Symbol: {data.get('symbol')}
+Sektor: {data.get('sector')}
+Branża: {data.get('industry')}
+Aktualna cena: {data.get('current_price')} {data.get('currency')}
+Poprzednie zamknięcie: {data.get('previous_close')}
+Dzienne maksimum: {data.get('day_high')}
+Dzienne minimum: {data.get('day_low')}
+Kapitalizacja rynkowa: {data.get('market_cap')}
+Wskaźnik P/E: {data.get('pe_ratio')}
+
+Przygotuj analizę zawierającą:
+1. Krótkie podsumowanie profilu działalności spółki.
+2. Kluczowe mocne strony i fundamenty.
+3. Główne czynniki ryzyka rynkowego i sektorowego.
+4. Ocenę bieżącej wyceny na tle wskaźników.
+5. Czynniki do dalszej obserwacji (BEZ formułowania rekomendacji kupna/sprzedaży).
+
+Odpowiadaj po polsku.
+"""
+
+    response = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            max_output_tokens=500,
+            temperature=0.3,
+        ),
+    )
+
+    return (response.text or "") + DISCLAIMER
+
+
+def analyze_news_sentiment(symbol: str) -> NewsSentimentResponse:
+    news_data = latest_news(symbol)
+    
+    top_articles = news_data.articles[:3]
+    news_text = "\n".join([f"- {article.title}" for article in top_articles])
+    
+    prompt = f"""
+    Oceń sentyment nagłówków finansowych dla symbolu {symbol}.
+    Dla każdego podaj sentyment (Pozytywny, Neutralny, Negatywny) i max 1 zdanie uzasadnienia.
+    Zwróć ogólny sentyment.
+    
+    Nagłówki:
+    {news_text if news_text else "Brak bieżących nagłówków."}
+    """
+    
+    response = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=NewsSentimentResponse,
+            max_output_tokens=300,
+            temperature=0.2,
+        ),
+    )
+    
+    return NewsSentimentResponse.model_validate_json(response.text)
+
+
+@lru_cache(maxsize=100)
+def generate_full_investment_report(symbol: str) -> str:
+    stock_data = get_stock_data(symbol)
+    news_data = latest_news(symbol)
+    macro_data = get_current_macro_summary()
+    
+    short_news = [f"- {art.title[:60]}..." for art in news_data.articles[:2]]
+    news_str = "\n".join(short_news) if short_news else "Brak newsów."
+    
+    prompt = f"""
+    Zrób krótki raport analityczny dla spółki {symbol}.
+    
+    Dane:
+    - Spółka: {stock_data.get('company')} | Cena: {stock_data.get('current_price')} {stock_data.get('currency')} | P/E: {stock_data.get('pe_ratio')}
+    - Sektor: {stock_data.get('sector')}
+    - Makro USA: PKB dynamika {macro_data.get('GDP', {}).get('value')}%, Inflacja r/r {macro_data.get('CPI_Inflation', {}).get('value')}%, Stopa FED {macro_data.get('Fed_Interest_Rate', {}).get('value')}%
+    - Newsy: {news_str}
+    
+    Napisz w Markdown po polsku (max 200 słów):
+    1. Sytuacja fundamentalna spółki
+    2. Wpływ otoczenia makroekonomicznego
+    3. Podsumowanie analityczne (BEZ rekomendacji doradczych)
+    """
+    
+    response = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            max_output_tokens=350,
+            temperature=0.2,
+        ),
+    )
+    
+    return (response.text or "") + DISCLAIMER
+
+
+def generate_dynamic_ai_impact(category_or_topic: str = "geopolityka") -> AIImpactResponse:
+    """Dynamiczna karta AI Impact generowana przez Gemini na podstawie bieżących newsów."""
+    news_data = latest_news(category_or_topic)
+    headlines = [art.title for art in news_data.articles[:4]]
+    headlines_str = "\n".join([f"- {h}" for h in headlines]) if headlines else "Brak bieżących nagłówków."
+
+    prompt = f"""
+Jesteś analitykiem ryzyka rynkowego i geopolitycznego.
+Na podstawie poniższych ostatnich doniesień medialnych:
+{headlines_str}
+
+Zidentyfikuj najważniejsze bieżące wydarzenie lub trend geopolityczno-gospodarczy i oceń jego rynkowy wpływ.
+Zwróć wynik jako JSON o polach:
+{{
+  "event": "Krótka nazwa kluczowego wydarzenia geopolitycznego lub makro",
+  "affectedMarkets": "Główne rynki i aktywa (np. ropa, EUR/PLN, złoto, indeksy giełdowe)",
+  "riskLevel": "Niskie / Średnie / Wysokie",
+  "sentiment": "Pozytywny / Neutralny / Negatywny",
+  "summary": "2-3 zdaniowa zwięzła synteza wpływu wydarzenia na rynki finansowe.",
+  "showChart": true
+}}
+"""
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                max_output_tokens=300,
+                temperature=0.2,
+            ),
+        )
+        data = json.loads(response.text)
+        return AIImpactResponse(**data)
+    except Exception:
+        return AIImpactResponse(
+            event="Napięcia geopolityczne i zmiany polityki monetarnej",
+            affectedMarkets="Rynki surowców energetycznych, waluty, obligacje",
+            riskLevel="Średnie",
+            sentiment="Neutralny",
+            summary="AI wskazuje na umiarkowaną zmienność na rynkach w obliczu napływających danych makro i wydarzeń międzynarodowych.",
+            showChart=True
+        )
+=========================================
+PLIK: app/services/chart_service.py
+=========================================
+import json
+import plotly.graph_objects as go
+from app.data_sources.yahoo import get_stock_history
+
+
+def get_chart(symbol: str):
+    history = get_stock_history(symbol)
+
+    fig = go.Figure()
+
+    # Bezpieczne wyciągnięcie osi X (Date/index)
+    x_data = history["Date"] if "Date" in history.columns else history.index
+
+    fig.add_trace(
+        go.Scatter(
+            x=x_data,
+            y=history["Close"],
+            mode="lines",
+            name=symbol.upper()
+        )
+    )
+
+    fig.update_layout(
+        title=f"{symbol.upper()} - ostatni miesiąc",
+        xaxis_title="Data",
+        yaxis_title="Cena",
+        template="plotly_white"
+    )
+
+    # 1. Konwertujemy figurę za pomocą wbudowanego, bezpiecznego enkodera Plotly
+    chart_json_str = fig.to_json()
+    
+    # 2. Parsujemy tekst JSON na standardowy słownik Pythona (bez obiektów Numpy/Pandas)
+    return json.loads(chart_json_str)
+=========================================
+PLIK: app/services/chat_service.py
+=========================================
+import re
+from google import genai
+from google.genai import types
+from app.ai.system_prompt import SYSTEM_PROMPT
+from app.config.settings import settings
+from app.models.chat import ChatRequest, ChatResponse
+from app.services.finance_service import get_stock
+
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+TICKER_MAP = {
+    "apple": "AAPL",
+    "aapl": "AAPL",
+    "samsung": "SSNLF",  # Samsung Electronics Co., Ltd. (OTC)
+    "microsoft": "MSFT",
+    "msft": "MSFT",
+    "google": "GOOGL",
+    "alphabet": "GOOGL",
+    "googl": "GOOGL",
+    "tesla": "TSLA",
+    "tsla": "TSLA",
+    "nvidia": "NVDA",
+    "nvda": "NVDA",
+    "amazon": "AMZN",
+    "amzn": "AMZN",
+    "meta": "META",
+    "orlen": "PKN.WA",
+}
+
+
+def _detect_symbols(message: str, fallback_symbol: str | None) -> list[str]:
+    symbols = []
+    if fallback_symbol and fallback_symbol.lower() not in ["string", "none", ""]:
+        symbols.append(fallback_symbol.upper())
+
+    words = re.findall(r"\b[a-zA-Z0-9.-]+\b", message.lower())
+    for word in words:
+        if word in TICKER_MAP and TICKER_MAP[word] not in symbols:
+            symbols.append(TICKER_MAP[word])
+
+    return symbols[:2]
+
+
+def process_message(request: ChatRequest) -> ChatResponse:
+    target_symbols = _detect_symbols(request.message, request.symbol)
+
+    market_context = ""
+    for sym in target_symbols:
+        try:
+            stock_data = get_stock(sym)
+            data_dict = stock_data.model_dump() if hasattr(stock_data, "model_dump") else dict(stock_data)
+            market_context += f"- Dane dla {sym}: {data_dict}\n"
+        except Exception:
+            pass
+
+    custom_system_instruction = (
+        f"{SYSTEM_PROMPT}\n\n"
+        "ŚCISŁE ZASADY ODPOWIEDZI:\n"
+        "1. ZWIĘZŁOŚĆ: Odpowiedź ma mieć maksymalnie 3-4 zdania lub zwartą listę punktową.\n"
+        "2. ZAKAZ ODSYŁANIA: Nigdy nie pisz 'wejdź w zakładkę Giełda/Newsy' ani nie tłumacz struktury menu.\n"
+        "3. INTEGRALNOŚĆ DANYCH: Jeśli poniżej podano aktualne dane z systemu, koniecznie na nich oprzyj liczby i wyceny. "
+        "Jeśli liczb nie ma w kontekście, nie zmyślaj kursów, lecz przedstaw zwięzłe podsumowanie profilu biznesowego spółek.\n"
+    )
+
+    if market_context:
+        custom_system_instruction += f"\nAKTUALNE DANE Z SYSTEMU DLA SPÓŁEK:\n{market_context}\n"
+
+    contents = []
+    if request.history:
+        for msg in request.history:
+            contents.append(
+                types.Content(
+                    role=msg.role,
+                    parts=[types.Part.from_text(text=msg.content)]
+                )
+            )
+
+    contents.append(
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=request.message)]
+        )
+    )
+
+    # Bezpieczne wywołanie z obsługą błędu 503 / przeciążenia Gemini
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=custom_system_instruction,
+                max_output_tokens=300,
+                temperature=0.2,
+            )
+        )
+        answer = response.text
+    except Exception:
+        if market_context:
+            answer = (
+                "Moduł analityczny AI jest chwilowo przeciążony, lecz oto najświeższe dane rynkowe z systemu:\n"
+                f"{market_context}\nSpróbuj zadać pytanie ponownie za chwilę."
+            )
+        else:
+            answer = "Serwery analityczne AI są w tej chwili mocno obciążone. Spróbuj zadać pytanie za chwilę."
+
+    return ChatResponse(response=answer)
+=========================================
+PLIK: app/services/data_lake_service.py
+=========================================
+import json
+import os
+from datetime import datetime, date
+import pandas as pd
+
+DATA_DIR = "data"
+
+
+def _json_serializer(obj):
+    """Pomocniczy konwerter typów nieobsługiwanych standardowo przez bibliotekę json."""
+    if isinstance(obj, (datetime, date, pd.Timestamp)):
+        return obj.isoformat()
+    return str(obj)
+
+
+def save_to_bronze(source_name: str, symbol_or_key: str, raw_data: dict) -> str:
+    """Warstwa Bronze: Zapis surowej odpowiedzi z API w formacie JSON."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_path = os.path.join(DATA_DIR, "bronze", source_name)
+    os.makedirs(folder_path, exist_ok=True)
+
+    file_path = os.path.join(folder_path, f"{symbol_or_key}_{timestamp}.json")
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(raw_data, f, ensure_ascii=False, indent=2, default=_json_serializer)
+
+    return file_path
+
+
+def process_bronze_to_silver_stock(symbol: str, df_stock: pd.DataFrame) -> str:
+    """Warstwa Silver: Oczyszczanie notowań giełdowych i zapis do Parquet."""
+    folder_path = os.path.join(DATA_DIR, "silver", "stocks")
+    os.makedirs(folder_path, exist_ok=True)
+
+    df_clean = df_stock.dropna().copy()
+    df_clean["symbol"] = symbol.upper()
+    df_clean["updated_at"] = datetime.now()
+
+    file_path = os.path.join(folder_path, f"{symbol.upper()}.parquet")
+    df_clean.to_parquet(file_path, index=True)
+
+    return file_path
+
+
+def generate_gold_stock_summary(symbol: str) -> dict:
+    """Warstwa Gold: Tworzenie gotowych agregatów giełdowych dla modeli AI."""
+    silver_path = os.path.join(DATA_DIR, "silver", "stocks", f"{symbol.upper()}.parquet")
+
+    if not os.path.exists(silver_path):
+        return {}
+
+    df = pd.read_parquet(silver_path)
+
+    gold_summary = {
+        "symbol": symbol.upper(),
+        "latest_close": float(df["Close"].iloc[-1]) if "Close" in df else None,
+        "avg_close_30d": float(df["Close"].tail(30).mean()) if "Close" in df else None,
+        "max_high_30d": float(df["High"].tail(30).max()) if "High" in df else None,
+        "min_low_30d": float(df["Low"].tail(30).min()) if "Low" in df else None,
+        "last_updated": datetime.now().isoformat()
+    }
+
+    gold_folder = os.path.join(DATA_DIR, "gold", "stocks")
+    os.makedirs(gold_folder, exist_ok=True)
+
+    with open(os.path.join(gold_folder, f"{symbol.upper()}_summary.json"), "w", encoding="utf-8") as f:
+        json.dump(gold_summary, f, indent=2, default=_json_serializer)
+
+    return gold_summary
+
+
+def process_macro_to_silver_and_gold(indicator_name: str, df_macro: pd.DataFrame) -> dict:
+    """Warstwa Silver & Gold dla danych makroekonomicznych (FRED)."""
+    if df_macro.empty:
+        return {}
+
+    # 1. Warstwa Silver: Zapis do Parquet
+    silver_folder = os.path.join(DATA_DIR, "silver", "macro")
+    os.makedirs(silver_folder, exist_ok=True)
+
+    df_clean = df_macro.dropna().copy()
+    df_clean["updated_at"] = datetime.now()
+
+    silver_path = os.path.join(silver_folder, f"{indicator_name.lower()}.parquet")
+    df_clean.to_parquet(silver_path, index=True)
+
+    # 2. Warstwa Gold: Zapis zagregowanego podsumowania JSON
+    latest_val = float(df_clean.iloc[-1, 0]) if len(df_clean) > 0 else None
+    prev_val = float(df_clean.iloc[-2, 0]) if len(df_clean) > 1 else None
+
+    gold_summary = {
+        "indicator": indicator_name.upper(),
+        "latest_value": latest_val,
+        "previous_value": prev_val,
+        "change": round(latest_val - prev_val, 4) if (latest_val is not None and prev_val is not None) else 0.0,
+        "last_updated": datetime.now().isoformat()
+    }
+
+    gold_folder = os.path.join(DATA_DIR, "gold", "macro")
+    os.makedirs(gold_folder, exist_ok=True)
+
+    with open(os.path.join(gold_folder, f"{indicator_name.lower()}_summary.json"), "w", encoding="utf-8") as f:
+        json.dump(gold_summary, f, indent=2, default=_json_serializer)
+
+    return gold_summary
+def save_news_to_silver(category: str, articles: list[dict]) -> str:
+    """Warstwa Silver: Przechowywanie zdeduplikowanych i ustrukturyzowanych newsów."""
+    folder_path = os.path.join(DATA_DIR, "silver", "news")
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, f"{category.lower()}.json")
+
+    existing_articles = []
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                existing_articles = json.load(f)
+        except Exception:
+            existing_articles = []
+
+    # Deduplikacja po unikalnym URL
+    seen_urls = {a.get("url") for a in articles if a.get("url")}
+    combined = list(articles)
+    for old_art in existing_articles:
+        if old_art.get("url") not in seen_urls:
+            combined.append(old_art)
+            seen_urls.add(old_art.get("url"))
+
+    # Sortowanie od najnowszych i zachowanie max 50 artykułów
+    combined.sort(key=lambda x: x.get("published_at", ""), reverse=True)
+    combined = combined[:50]
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(combined, f, ensure_ascii=False, indent=2, default=_json_serializer)
+
+    return file_path
+
+def get_news_from_silver(category: str, limit: int = 30) -> list[dict]:
+    """Odczyt oczyszczonych wiadomości z warstwy Silver."""
+    file_path = os.path.join(DATA_DIR, "silver", "news", f"{category.lower()}.json")
+    if not os.path.exists(file_path):
+        return []
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data[:limit]
+    except Exception:
+        return []
+
+
+def save_news_gold_analysis(category: str, analysis_data: dict) -> str:
+    """Warstwa Gold: Przechowywanie analizy AI dla wiadomości z danej kategorii."""
+    folder_path = os.path.join(DATA_DIR, "gold", "news")
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, f"{category.lower()}_analysis.json")
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(analysis_data, f, ensure_ascii=False, indent=2, default=_json_serializer)
+
+    return file_path
+
+
+def get_news_gold_analysis(category: str) -> dict | None:
+    """Odczyt gotowej analizy AI z warstwy Gold."""
+    file_path = os.path.join(DATA_DIR, "gold", "news", f"{category.lower()}_analysis.json")
+    if not os.path.exists(file_path):
+        return None
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+=========================================
+PLIK: app/services/finance_service.py
+=========================================
+from app.data_sources.yahoo import get_stock_data, get_stock_history
+from app.models.stock import StockResponse
+from app.services.data_lake_service import (
+    save_to_bronze,
+    process_bronze_to_silver_stock,
+    generate_gold_stock_summary
+)
+
+
+def get_stock(symbol: str) -> StockResponse:
+    symbol_clean = symbol.upper()
+    data = get_stock_data(symbol_clean)
+
+    # 1. Warstwa Bronze: Zapis surowej odpowiedzi ze słownika do JSON
+    if data:
+        save_to_bronze(source_name="yfinance", symbol_or_key=symbol_clean, raw_data=data)
+
+    # 2. Pobranie historii, zapis do Silver (.parquet) oraz wyliczenie Gold
+    try:
+        history_df = get_stock_history(symbol_clean)
+        if not history_df.empty:
+            process_bronze_to_silver_stock(symbol=symbol_clean, df_stock=history_df)
+            generate_gold_stock_summary(symbol=symbol_clean)
+    except Exception as e:
+        print(f"⚠️ Nie udało się zapisać historii dla {symbol_clean} w Data Lake: {e}")
+
+    # Zwrócenie poprawnej struktury Pydantic
+    return StockResponse(
+        symbol=data["symbol"],
+        company=data["company"],
+        sector=data["sector"],
+        industry=data["industry"],
+        current_price=data["current_price"],
+        previous_close=data["previous_close"],
+        day_high=data["day_high"],
+        day_low=data["day_low"],
+        market_cap=data["market_cap"],
+        pe_ratio=data["pe_ratio"],
+        currency=data["currency"],
+    )
+
+
+def get_history(symbol: str):
+    history = get_stock_history(symbol)
+    return history.to_dict(orient="records")
+=========================================
+PLIK: app/services/macro_service.py
+=========================================
+import pandas as pd
+from app.data_sources.fred import get_macro_indicator
+from google import genai
+from google.genai import types
+from app.config.settings import settings
+from app.services.data_lake_service import (
+    save_to_bronze,
+    process_macro_to_silver_and_gold
+)
+
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+
+def get_current_macro_summary() -> dict:
+    """Pobiera komplet najnowszych wskaźników makro z historią i zasila Data Lake."""
+    indicators = {
+        "GDP": get_macro_indicator("GDP", limit=12),
+        "CPI_Inflation": get_macro_indicator("INFLATION", limit=12),
+        "Fed_Interest_Rate": get_macro_indicator("INTEREST_RATE", limit=12),
+    }
+
+    # Zapis do Data Lake (Bronze, Silver, Gold)
+    for name, data in indicators.items():
+        if data and data.get("value") != "N/A":
+            save_to_bronze(source_name="fred", symbol_or_key=name.lower(), raw_data=data)
+
+            try:
+                history = data.get("history", [])
+                if history:
+                    df_macro = pd.DataFrame(history)
+                    df_macro.set_index("date", inplace=True)
+                else:
+                    df_macro = pd.DataFrame([{"date": data.get("date"), "value": float(data.get("value", 0))}])
+                    df_macro.set_index("date", inplace=True)
+                
+                process_macro_to_silver_and_gold(indicator_name=name, df_macro=df_macro)
+            except Exception as e:
+                print(f"⚠️ Błąd zapisu makro {name} do Data Lake: {e}")
+
+    return {
+        "GDP": {"date": indicators["GDP"]["date"], "value": indicators["GDP"]["value"]},
+        "CPI_Inflation": {"date": indicators["CPI_Inflation"]["date"], "value": indicators["CPI_Inflation"]["value"]},
+        "Fed_Interest_Rate": {"date": indicators["Fed_Interest_Rate"]["date"], "value": indicators["Fed_Interest_Rate"]["value"]},
+    }
+
+
+def analyze_macro_environment() -> str:
+    """Oceniamy otoczenie makroekonomiczne przez Gemini z zabezpieczeniem przed błędem 503."""
+    macro_data = get_current_macro_summary()
+    
+    prompt = f"""
+    Na podstawie poniższych najnowszych wskaźników makroekonomicznych USA:
+    - Dynamika PKB (GDP): {macro_data['GDP']['value']}% r/r (odczyt z dnia {macro_data['GDP']['date']})
+    - Inflacja konsumencka (CPI): {macro_data['CPI_Inflation']['value']}% r/r (odczyt z dnia {macro_data['CPI_Inflation']['date']})
+    - Stopa funduszy federalnych (FED): {macro_data['Fed_Interest_Rate']['value']}% (odczyt z dnia {macro_data['Fed_Interest_Rate']['date']})
+    
+    Krótko (maksymalnie 150 słów) oceń ogólny stan gospodarki pod kątem rynków finansowych.
+    Wymień dokładnie 2 szanse i 2 zagrożenia dla stabilności wycen. Odpowiadaj po polsku.
+    """
+    
+    disclaimer = "\n\n---\n*Zastrzeżenie: Analiza makroekonomiczna ma charakter informacyjny i nie stanowi rekomendacji doradczej.*"
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                max_output_tokens=250,
+                temperature=0.2,
+            ),
+        )
+        return (response.text or "") + disclaimer
+    except Exception:
+        # Odpowiedź awaryjna w przypadku przeciążenia Gemini (kod 503)
+        return (
+            f"Otoczenie makroekonomiczne (odczyty: PKB {macro_data['GDP']['value']}%, "
+            f"Inflacja CPI {macro_data['CPI_Inflation']['value']}%, Stopa FED {macro_data['Fed_Interest_Rate']['value']}%): "
+            "Bieżące odczyty wskazują na umiarkowane tempo wzrostu gospodarczego przy restrykcyjnych warunkach monetarnych. "
+            "Szanse: stabilizacja presji cenowej i przewidywalność stóp. "
+            "Zagrożenia: koszty obsługi długu oraz presja na marże spółek."
+            + disclaimer
+        )
+=========================================
+PLIK: app/services/news_service.py
+=========================================
+import hashlib
+import json
+import logging
+from datetime import datetime, timezone
+import feedparser
+from google import genai
+
+from app.config.settings import settings
+from app.data_sources.news import get_news
+from app.models.news import NewsArticle, NewsResponse
+from app.services.data_lake_service import (
+    save_to_bronze,
+    save_news_to_silver,
+    get_news_from_silver,
+    save_news_gold_analysis,
+    get_news_gold_analysis,
+)
+
+logger = logging.getLogger("news_service")
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+# 1. Mapowanie kategorii
+CATEGORY_MAPPING = {
+    "gielda": "stock market",
+    "makroekonomia": "economy inflation",
+    "kryptowaluty": "crypto",
+    "geopolityka": "geopolitics diplomacy",
+    "polska_gospodarka": "poland economy",
+    "swiatowe_rynki": "global financial markets",
+}
+
+# 2. Czarna lista serwisów plotkarskich oraz repozytoriów kodu
+EXCLUDED_DOMAINS = [
+    "pagesix.com",
+    "thoughtcatalog.com",
+    "tmz.com",
+    "pypi.org",
+    "github.com",
+    "buzzfeed.com",
+    "dailymail.co.uk",
+]
+
+# 3. Zaufane polskie źródła RSS (Priorytet: 0 tokenów, język polski, brak limitu 100 req/dobę)
+RSS_SOURCES = {
+    "gielda": [
+        ("https://www.bankier.pl/rss/wiadomosci.xml", "Bankier.pl Giełda"),
+        ("https://stooq.pl/rss/", "Stooq"),
+    ],
+    "makroekonomia": [
+        ("https://www.bankier.pl/rss/gospodarka.xml", "Bankier Gospodarka"),
+    ],
+    "kryptowaluty": [
+        ("https://bithub.pl/feed/", "BitHub"),
+        ("https://bitcoin.pl/feed", "Bitcoin.pl"),
+    ],
+    "geopolityka": [
+        ("https://defence24.pl/rss", "Defence24"),
+    ],
+    "polska_gospodarka": [
+        ("https://www.bankier.pl/rss/gospodarka.xml", "Bankier Polska"),
+    ],
+    "swiatowe_rynki": [
+        ("https://www.bankier.pl/rss/rynki-zagraniczne.xml", "Bankier Świat"),
+    ],
+}
+
+
+def _hash_id(url: str) -> str:
+    return hashlib.md5(url.strip().encode("utf-8")).hexdigest()
+
+
+def _translate_titles_batch(titles: list[str]) -> list[str]:
+    """Tłumaczy nagłówki na język polski w jednym wsadowym zapytaniu do Gemini."""
+    if not titles:
+        return []
+
+    prompt = (
+        "Przetłumacz poniższe nagłówki wiadomości finansowych i geopolitycznych na naturalny, "
+        "rzeczowy język polski. Zwróć wynik WYŁĄCZNIE jako poprawną tablicę JSON, "
+        "dokładnie w tej samej kolejności: [\"tytuł 1\", \"tytuł 2\", ...].\n\n"
+        f"Nagłówki:\n{json.dumps(titles, ensure_ascii=False)}"
+    )
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.1,
+            ),
+        )
+        translated = json.loads(response.text)
+        if isinstance(translated, list) and len(translated) == len(titles):
+            return translated
+    except Exception as e:
+        logger.warning(f"Błąd tłumaczenia tytułów przez Gemini: {e}")
+
+    return titles
+
+
+def fetch_from_rss(category_key: str) -> list[dict]:
+    """Pobiera wiadomości z polskich kanałów RSS."""
+    feeds = RSS_SOURCES.get(category_key, [])
+    now_iso = datetime.now(timezone.utc).isoformat()
+    articles = []
+
+    for feed_url, source_name in feeds:
+        try:
+            parsed = feedparser.parse(feed_url)
+            for entry in parsed.entries[:25]:
+                url = getattr(entry, "link", "").strip()
+                title = getattr(entry, "title", "").strip()
+                if not url or not title:
+                    continue
+
+                pub = getattr(entry, "published", now_iso)
+                desc = getattr(entry, "summary", "")
+
+                articles.append({
+                    "id": _hash_id(url),
+                    "title": title,
+                    "description": desc,
+                    "source": source_name,
+                    "url": url,
+                    "image_url": None,
+                    "category": category_key,
+                    "published_at": pub,
+                    "fetched_at": now_iso,
+                    "language": "pl",
+                })
+        except Exception as e:
+            logger.error(f"Błąd pobierania RSS {feed_url}: {e}")
+
+    return articles
+
+
+def fetch_and_process_category(category_key: str) -> list[dict]:
+    """
+    Pobiera artykuły. Polskie RSS są priorytetem (0 tokenów),
+    a NewsAPI stanowi uzupełnienie tylko, jeśli brakuje artykułów.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    clean_cat = category_key.strip().lower().replace(" ", "_")
+    all_articles = []
+
+    # 1. Priorytet: Zaufane polskie źródła RSS
+    rss_articles = fetch_from_rss(clean_cat)
+    all_articles.extend(rss_articles)
+
+    # 2. Uzupełnienie z NewsAPI tylko wtedy, gdy z RSS jest mniej niż 15 artykułów
+    if len(all_articles) < 15:
+        query = CATEGORY_MAPPING.get(clean_cat, clean_cat)
+        raw_articles = []
+        try:
+            raw_articles = get_news(query)
+            if not raw_articles and clean_cat in CATEGORY_MAPPING:
+                raw_articles = get_news("finance")
+        except Exception as e:
+            logger.warning(f"NewsAPI niedostępne dla {clean_cat}: {e}")
+
+        if raw_articles:
+            try:
+                save_to_bronze("newsapi", clean_cat, {"articles": raw_articles})
+            except Exception:
+                pass
+
+        filtered_newsapi = []
+        for art in raw_articles:
+            source_name = (art.get("source", {}).get("name") or "").lower()
+            url = (art.get("url") or "").lower()
+            title = art.get("title") or ""
+
+            if not title or "[Removed]" in title:
+                continue
+            if any(domain in url or domain in source_name for domain in EXCLUDED_DOMAINS):
+                continue
+
+            filtered_newsapi.append(art)
+
+        selected_newsapi = filtered_newsapi[:5]
+        orig_titles = [a.get("title", "") for a in selected_newsapi]
+        translated = _translate_titles_batch(orig_titles)
+
+        for art, trans_title in zip(selected_newsapi, translated):
+            url = art.get("url", "")
+            all_articles.append({
+                "id": _hash_id(url),
+                "title": trans_title,
+                "description": art.get("description", ""),
+                "source": art.get("source", {}).get("name", "NewsAPI"),
+                "url": url,
+                "image_url": art.get("urlToImage"),
+                "category": clean_cat,
+                "published_at": art.get("publishedAt", now_iso),
+                "fetched_at": now_iso,
+                "language": "pl",
+            })
+
+    # 3. Zapis do warstwy Silver Data Lake (deduplikacja i sortowanie)
+    if all_articles:
+        save_news_to_silver(clean_cat, all_articles)
+
+    return all_articles
+
+
+def latest_news(symbol: str) -> NewsResponse:
+    """
+    Główny endpoint GET /stock/news/{symbol}.
+    Czyta artykuły z Data Lake (Silver). Pobiera w locie, jeśli kategoria jest pusta.
+    """
+    clean_cat = symbol.strip().lower().replace(" ", "_")
+
+    articles = get_news_from_silver(clean_cat, limit=30)
+    if not articles or len(articles) < 5:
+        articles = fetch_and_process_category(clean_cat)
+
+    articles_list = [
+        NewsArticle(
+            title=a.get("title", "Brak tytułu"),
+            source=a.get("source", "Rynek"),
+            published=a.get("published_at", ""),
+            url=a.get("url", ""),
+        )
+        for a in articles[:30]
+    ]
+
+    return NewsResponse(articles=articles_list)
+
+
+def get_news_full_payload(category: str, limit: int = 30) -> dict:
+    """Format rozszerzony (zgodny ze specyfikacją Kamila)."""
+    clean_cat = category.strip().lower().replace(" ", "_")
+    articles = get_news_from_silver(clean_cat, limit=limit)
+    if not articles:
+        articles = fetch_and_process_category(clean_cat)
+
+    last_updated = articles[0].get("fetched_at") if articles else None
+
+    return {
+        "category": clean_cat,
+        "total_results": len(articles),
+        "last_updated": last_updated,
+        "articles": articles[:limit],
+    }
+
+
+def analyze_news_sentiment(category: str) -> dict:
+    """Zwięzła analiza AI dla danej kategorii z pamięcią podręczną w warstwie Gold (<150 tokenów)."""
+    clean_cat = category.strip().lower().replace(" ", "_")
+
+    cached = get_news_gold_analysis(clean_cat)
+    if cached:
+        return cached
+
+    articles = get_news_from_silver(clean_cat, limit=5)
+    if not articles:
+        return {
+            "category": clean_cat,
+            "summary": "Brak artykułów w Data Lake do przeprowadzenia analizy.",
+            "sentiment": "Neutralny",
+            "market_impact": "Brak danych.",
+            "uncertainty": "Umiarkowana",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    digest = "\n".join([f"- [{a.get('id', '')[:8]}] {a.get('title', '')} ({a.get('source', '')})" for a in articles])
+
+    prompt = (
+        f"Kategoria wiadomości: {clean_cat}\n"
+        f"Nagłówki rynkowe:\n{digest}\n\n"
+        "Jako analityk sporządź zwięzłą analizę. Zwróć WYŁĄCZNIE obiekt JSON z polami:\n"
+        "- summary: 1-2 zdania streszczenia sytuacji.\n"
+        "- market_impact: 1 zdanie o wpływie na rynek i wyceny.\n"
+        "- sentiment: jedno słowo (Pozytywny, Negatywny, Neutralny).\n"
+        "- uncertainty: jedno słowo (Niska, Umiarkowana, Wysoka)."
+    )
+
+    try:
+        res = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                max_output_tokens=180,
+                temperature=0.1,
+            ),
+        )
+        data = json.loads(res.text)
+        data["category"] = clean_cat
+        data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        save_news_gold_analysis(clean_cat, data)
+        return data
+    except Exception as e:
+        logger.error(f"Błąd analizy Gemini: {e}")
+        return {
+            "category": clean_cat,
+            "summary": "Analiza AI chwilowo niedostępna.",
+            "sentiment": "Neutralny",
+            "market_impact": "Brak możliwości oszacowania.",
+            "uncertainty": "Wysoka",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+=========================================
+PLIK: app/services/scheduler.py
+=========================================
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.services.finance_service import get_stock
+from app.services.macro_service import get_current_macro_summary
+
+scheduler = BackgroundScheduler()
+
+CATEGORIES_TO_SYNC = [
+    "gielda",
+    "makroekonomia",
+    "kryptowaluty",
+    "geopolityka",
+    "polska_gospodarka",
+    "swiatowe_rynki"
+]
+
+
+def update_news_cache():
+    """Cykliczne pobieranie wiadomości do Data Lake (0 tokenów Gemini)."""
+    print("🔄 [APScheduler] Pobieranie świeżych newsów do Data Lake...")
+    # Import lokalny zapobiega cyklicznym importom przy starcie
+    from app.services.news_service import fetch_and_process_category
+    for cat in CATEGORIES_TO_SYNC:
+        try:
+            fetch_and_process_category(cat)
+        except Exception as e:
+            print(f"❌ [APScheduler] Błąd dla kategorii {cat}: {e}")
+    print("✅ [APScheduler] Data Lake zaktualizowany o najnowsze artykuły.")
+
+
+def update_market_cache():
+    print("🔄 [APScheduler] Automatyczne odświeżanie danych rynkowych...")
+    try:
+        get_current_macro_summary()
+        for symbol in ["AAPL", "NVDA", "MSFT", "EURPLN=X"]:
+            get_stock(symbol)
+        print("✅ [APScheduler] Notowania rynkowe zaktualizowane.")
+    except Exception as e:
+        print(f"❌ [APScheduler] Błąd odświeżania notowań: {e}")
+
+
+def start_scheduler():
+    # Odświeżanie notowań co 60 minut
+    scheduler.add_job(update_market_cache, "interval", minutes=60)
+    # Odświeżanie newsów co 15 minut (wymaganie Kamila)
+    scheduler.add_job(update_news_cache, "interval", minutes=15)
+    
+    scheduler.start()
+
+    # Jednorazowe wstępne napełnienie bazy przy starcie
+    try:
+        update_news_cache()
+    except Exception:
+        pass
+
