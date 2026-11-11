@@ -1,0 +1,59 @@
+{
+  "category": "global",
+  "generatedAt": "2026-11-08T16:36:26Z",
+  "updated_at": "2026-11-08T16:36:26Z",
+  "summary": "Początek listopada 2026 roku przynosi mieszane nastroje na rynkach globalnych, naznaczone odbiciem akcji sektora AI po wcześniejszej wyprzedaży oraz powyborczymi przetasowaniami na Wall Street. Inwestorzy uważnie śledzą także nadchodzące dane makroekonomiczne dotyczące inflacji, rynku mieszkaniowego i zatrudnienia.",
+  "sentiment": "neutral",
+  "market_impact": "Niepewność polityczna, rosnące zadłużenie oraz obawy o stabilność wycen w sektorze sztucznej inteligencji mogą utrzymać podwyższoną zmienność na rynkach akcji.",
+  "uncertainty": "medium",
+  "source_signature": [
+    "global-eeb1a14d",
+    "global-0b6983aa",
+    "global-12ac81dd",
+    "global-41dfe716",
+    "global-ee0aa0ae",
+    "global-3c64fdc2"
+  ],
+  "analyses": [
+    {
+      "id": "global-analysis-001",
+      "title": "Odbicie akcji spółek AI i polityczne trzęsienie ziemi na Wall Street",
+      "summary": "Akcje spółek produkujących czipy AI odnotowały odbicie po globalnej wyprzedaży, jednak analitycy i inwestorzy zadają sobie pytanie o trwałość tych wzrostów w obliczu rosnącego zadłużenia. Sytuację na Wall Street skomplikowały dodatkowo wyniki wyborów uzupełniających, w których zwycięstwo Demokratów wpłynęło m.in. na firmy z sektora alkoholowego i całościowy krajobraz rynkowy.",
+      "affectedMarkets": [
+        "Sektor AI",
+        "Wall Street",
+        "Rynek akcji",
+        "Firmy alkoholowe"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Wzrost niepewności regulacyjnej i politycznej przy jednoczesnych obawach o pęknięcie bańki spekulacyjnej na rynku sztucznej inteligencji może prowadzić do dalszych wahań kursów spółek technologicznych.",
+      "market_impact": "Wzrost niepewności regulacyjnej i politycznej przy jednoczesnych obawach o pęknięcie bańki spekulacyjnej na rynku sztucznej inteligencji może prowadzić do dalszych wahań kursów spółek technologicznych.",
+      "sourceArticleIds": [
+        "global-0b6983aa",
+        "global-12ac81dd"
+      ]
+    },
+    {
+      "id": "global-analysis-002",
+      "title": "Kluczowe dane makroekonomiczne i globalne ryzyka geopolityczne",
+      "summary": "Kalendarz gospodarczy na najbliższe dni zdominuje publikacja danych o inflacji, sytuacja na rynku mieszkaniowego oraz wskaźniki zatrudnienia w USA. Jednocześnie eksperti ds. ryzyka geopolitycznego podsumowują napięcia na Bliskim Wschodzie oraz inne globalne wydarzenia z poprzedniego miesiąca.",
+      "affectedMarkets": [
+        "Rynek pracy",
+        "Rynek nieruchomości",
+        "Waluty",
+        "Obligacje"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Publikacja kluczowych danych makroekonomicznych może silnie wpłynąć na oczekiwania dotyczące polityki monetarnej oraz nastroje inwestorów na globalnych rynkach.",
+      "market_impact": "Publikacja kluczowych danych makroekonomicznych może silnie wpłynąć na oczekiwania dotyczące polityki monetarnej oraz nastroje inwestorów na globalnych rynkach.",
+      "sourceArticleIds": [
+        "global-eeb1a14d",
+        "global-41dfe716"
+      ]
+    }
+  ]
+}

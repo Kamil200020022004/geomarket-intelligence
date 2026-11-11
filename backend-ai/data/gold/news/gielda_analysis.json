@@ -1,0 +1,58 @@
+{
+  "category": "stocks",
+  "generatedAt": "2026-11-08T16:20:23Z",
+  "updated_at": "2026-11-08T16:20:23Z",
+  "summary": "Ostatnie dni przyniosły znaczące zawirowania i wyprzedaż na międzynarodowych rynkach finansowych, wywołane obawami związanymi ze spółkami sektora AI oraz wynikami wyborów w USA. Negatywne nastroje szybko przeniosły się na polską giełdę, powodując silne spadki m.in. na akcjach Orlenu. Sytuacja ta budzi obawy o pogłębienie trwającej korekty.",
+  "sentiment": "negative",
+  "market_impact": "Korekta na rynkach globalnych oraz silna przecena na GPW zwiększają niepewność inwestorów i mogą prowadzić do dalszej podwyższonej zmienności w najbliższym czasie.",
+  "uncertainty": "high",
+  "source_signature": [
+    "stocks-1ce90260",
+    "stocks-2690dc16",
+    "stocks-f3ac4c1b",
+    "stocks-71321b8e",
+    "stocks-ab5757a7",
+    "stocks-6e1d7b8d"
+  ],
+  "analyses": [
+    {
+      "id": "stocks-analysis-001",
+      "title": "Wyprzedaż spółek AI i zawirowania polityczne w USA uderzają w giełdy",
+      "summary": "Wyniki amerykańskich wyborów połówkowych oraz obawy o utrzymanie tempa budowy centrów danych wywołały tąpnięcie na rynkach globalnych. Inwestorzy obawiają się o perspektywy sektora sztucznej inteligencji i półprzewodników, co zapoczątkowało głębszą korektę.",
+      "affectedMarkets": [
+        "USA Stock Market",
+        "GPW",
+        "Sektor AI"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Zawirowania w USA przekładają się bezpośrednio na rynki europejskie, w tym na polską giełdę, zwiększając ryzyko dalszych spadków.",
+      "market_impact": "Zawirowania w USA przekładają się bezpośrednio na rynki europejskie, w tym na polską giełdę, zwiększając ryzyko dalszych spadków.",
+      "sourceArticleIds": [
+        "stocks-f3ac4c1b",
+        "stocks-71321b8e",
+        "stocks-ab5757a7",
+        "stocks-6e1d7b8d"
+      ]
+    },
+    {
+      "id": "stocks-analysis-002",
+      "title": "Silne spadki na GPW i przecena akcji Orlenu",
+      "summary": "Krach na giełdach w USA odbił się szerokim echem na warszawskim parkiecie. Wyprzedaż dotknęła kluczowe spółki, w tym Orlen, którego kurs runął o 6%.",
+      "affectedMarkets": [
+        "GPW",
+        "Orlen"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Nagłe spadki na indeksach krajowych mogą osłabić sentyment inwestorów instytucjonalnych i indywidualnych do akcji spółek z GPW.",
+      "market_impact": "Nagłe spadki na indeksach krajowych mogą osłabić sentyment inwestorów instytucjonalnych i indywidualnych do akcji spółek z GPW.",
+      "sourceArticleIds": [
+        "stocks-f3ac4c1b",
+        "stocks-6e1d7b8d"
+      ]
+    }
+  ]
+}

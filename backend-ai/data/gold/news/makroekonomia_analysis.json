@@ -1,0 +1,76 @@
+{
+  "category": "macro",
+  "generatedAt": "2026-11-08T16:20:39Z",
+  "updated_at": "2026-11-08T16:20:39Z",
+  "summary": "Najnowsze doniesienia makroekonomiczne skupiają się na uporczywej inflacji w Polsce i prognozach jej powrotu do celu dopiero w 2028 roku, decyzjach RPP oraz globalnych danych z USA. Dodatkowo uwagę rynków przyciągają rekordowe zakupy złota przez NBP oraz zaskakująco mocne dane z amerykańskiego rynku pracy.",
+  "sentiment": "negative",
+  "market_impact": "Oczekiwania wyższej inflacji w Polsce oraz perspektywa dalszych podwyżek stóp procentowych w USA zwiększają presję na rynki długu i akcji.",
+  "uncertainty": "high",
+  "source_signature": [
+    "macro-dcb91656",
+    "macro-0ab468ed",
+    "macro-09612440",
+    "macro-01e6d6f8",
+    "macro-7a6244f0",
+    "macro-17070536"
+  ],
+  "analyses": [
+    {
+      "id": "macro-analysis-001",
+      "title": "Inflacja w Polsce i decyzje Rady Polityki Pieniężnej",
+      "summary": "Zgodnie z nową projekcją NBP, inflacja w 2027 roku wzrośnie do 4,2% i powróci do celu dopiero w 2028 roku. Sytuacja ta wiąże się z decyzjami RPP w sprawie stóp procentowych oraz rosnącymi od 15 lat kosztami obligacji.",
+      "affectedMarkets": [
+        "Obligacje skarbowe",
+        "PLN",
+        "Rynek kredytowy"
+      ],
+      "sentiment": "negative",
+      "riskLevel": "high",
+      "uncertainty": "high",
+      "potentialImpact": "Wzrost rentowności obligacji oraz utrzymujące się wyższe stopy procentowe przekładają się na droższy dług publiczny i koszty finansowania w gospodarce.",
+      "market_impact": "Wzrost rentowności obligacji oraz utrzymujące się wyższe stopy procentowe przekładają się na droższy dług publiczny i koszty finansowania w gospodarce.",
+      "sourceArticleIds": [
+        "macro-dcb91656",
+        "macro-01e6d6f8",
+        "macro-17070536",
+        "macro-7a6244f0"
+      ]
+    },
+    {
+      "id": "macro-analysis-002",
+      "title": "Amerykańskie payrollsy i ich wpływ na politykę monetarną USA",
+      "summary": "Dane o zatrudnieniu w USA mocno zaskoczyły ekonomistów, pokazując solidny wzrost i spadek bezrobocia. Taki stan rzeczy otwiera drogę do drugiej podwyżki stóp procentowych w Rezerwie Federalnej.",
+      "affectedMarkets": [
+        "USD",
+        "Obligacje USA",
+        "Globalne rynki akcji"
+      ],
+      "sentiment": "neutral",
+      "riskLevel": "medium",
+      "uncertainty": "medium",
+      "potentialImpact": "Silny rynek pracy w Stanach Zjednoczonych może wymusić na Fed bardziej jastrzębią politykę, co wpływa na zmienność na globalnych rynkach walutowych i dłużnych.",
+      "market_impact": "Silny rynek pracy w Stanach Zjednoczonych może wymusić na Fed bardziej jastrzębią politykę, co wpływa na zmienność na globalnych rynkach walutowych i dłużnych.",
+      "sourceArticleIds": [
+        "macro-0ab468ed",
+        "macro-7a6244f0"
+      ]
+    },
+    {
+      "id": "macro-analysis-003",
+      "title": "Rezerwy złota Narodowego Banku Polskiego",
+      "summary": "Prezes NBP Adam Glapiński ogłosił realizację celu i zgromadzenie 700 ton złota, choć analizy zewnętrzne wskazują na pewne rozbieżności w szacunkach dotyczących dokładnego wolumenu na koniec października.",
+      "affectedMarkets": [
+        "Złoto",
+        "Rezerwy dewizowe"
+      ],
+      "sentiment": "positive",
+      "riskLevel": "low",
+      "uncertainty": "low",
+      "potentialImpact": "Rozbudowa rezerw kruszcu przez bank centralny wzmacnia długoterminowe bezpieczeństwo finansowe państwa i pozycję złotego.",
+      "market_impact": "Rozbudowa rezerw kruszcu przez bank centralny wzmacnia długoterminowe bezpieczeństwo finansowe państwa i pozycję złotego.",
+      "sourceArticleIds": [
+        "macro-09612440"
+      ]
+    }
+  ]
+}
