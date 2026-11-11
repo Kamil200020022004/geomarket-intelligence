@@ -68,6 +68,8 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -85,9 +87,6 @@ dist
 
 # Gatsby files
 .cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
 
 # vuepress build output
 .vuepress/dist
@@ -142,22 +141,31 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-.env
-**/.env
+# Środowiska Python i cache
 .venv/
 **/.venv/
-node_modules/
+venv/
+**/venv/
+env/
+**/env/
 __pycache__/
 **/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+**/.pytest_cache/
 
-# Dane kont użytkowników
-backend-ai/data/geomarket_users.xlsx
-backend-ai/data/.auth_secret
+# Dane kont użytkowników, tokeny i lokalny Data Lake (Bronze / Silver / Gold)
+backend-ai/data/
+data/
+**/geomarket_users.xlsx
+**/.auth_secret
+**/.password_reset_tokens.json
 
-# Lokalne środowisko
-.env
-**/.env
-.venv/
-**/.venv/
-node_modules/
+# Pomocnicze zrzuty kodu i skrypty robocze
 caly_kod_backend_ai.txt
+**/caly_kod_backend_ai.txt
+caly_projekt*.txt
+**/caly_projekt*.txt
+pack_project.py
+**/pack_project.py
