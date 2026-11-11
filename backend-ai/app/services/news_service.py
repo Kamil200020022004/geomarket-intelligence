@@ -6,16 +6,8 @@ import json
 import logging
 import os
 import re
-<<<<<<< HEAD
 from urllib.parse import urlparse
 import feedparser
-=======
-from datetime import datetime, timezone, timedelta
-from email.utils import parsedate_to_datetime
-import feedparser
-import requests
-from urllib.parse import urlparse
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 from google import genai
 import requests
 
@@ -34,51 +26,7 @@ from app.services.data_lake_service import (
 logger = logging.getLogger("news_service")
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-<<<<<<< HEAD
 IS_VERCEL = bool(os.getenv("VERCEL"))
-=======
-# Vercel uruchamia FastAPI jako funkcję serverless, której katalog aplikacji
-# jest tylko do odczytu. Lokalne pliki Data Lake nie są trwałym magazynem.
-IS_VERCEL = bool(os.environ.get("VERCEL"))
-
-
-def _read_silver_safe(category: str, limit: int) -> list[dict]:
-    if IS_VERCEL:
-        return []
-    try:
-        return get_news_from_silver(category, limit=limit)
-    except (OSError, ValueError) as exc:
-        logger.warning("Nie można odczytać cache Silver (%s): %s", category, exc)
-        return []
-
-
-def _read_gold_safe(category: str) -> dict | None:
-    if IS_VERCEL:
-        return None
-    try:
-        return get_news_gold_analysis(category)
-    except (OSError, ValueError) as exc:
-        logger.warning("Nie można odczytać cache Gold (%s): %s", category, exc)
-        return None
-
-
-def _write_silver_safe(category: str, articles: list[dict]) -> None:
-    if IS_VERCEL or not articles:
-        return
-    try:
-        save_news_to_silver(category, articles)
-    except OSError as exc:
-        logger.warning("Nie można zapisać wiadomości Silver (%s): %s", category, exc)
-
-
-def _write_gold_safe(category: str, payload: dict) -> None:
-    if IS_VERCEL:
-        return
-    try:
-        save_news_gold_analysis(category, payload)
-    except OSError as exc:
-        logger.warning("Nie można zapisać analizy Gold (%s): %s", category, exc)
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
 FRONTEND_TO_INTERNAL_CATEGORY = {
     "stocks": "gielda",
@@ -106,7 +54,6 @@ INTERNAL_TO_FRONTEND_CATEGORY = {
 
 CATEGORY_MAPPING = {
     "gielda": "stock market OR NASDAQ OR S&P 500 OR equities OR giełda",
-<<<<<<< HEAD
     "makroekonomia": (
         "inflation OR interest rates OR GDP OR central bank OR inflacja stopy"
     ),
@@ -120,13 +67,6 @@ CATEGORY_MAPPING = {
     "swiatowe_rynki": (
         "global markets OR Wall Street OR European markets OR commodities"
     ),
-=======
-    "makroekonomia": "inflation OR interest rates OR GDP OR central bank OR inflacja stopy",
-    "kryptowaluty": "bitcoin OR ethereum OR cryptocurrency OR krypto",
-    "geopolityka": "geopolitics OR sanctions OR trade tariff OR conflict economy",
-    "polska_gospodarka": "Poland economy OR Warsaw Stock Exchange OR NBP OR GUS",
-    "swiatowe_rynki": "global markets OR Wall Street OR European markets OR commodities",
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 }
 
 # Uszczelniona czarna lista domen i repozytoriów deweloperskich
@@ -225,7 +165,6 @@ DEFAULT_MARKETS_BY_CATEGORY = {
     "swiatowe_rynki": ["S&P 500", "DAX", "Surowce"],
 }
 
-<<<<<<< HEAD
 TOPIC_KEYWORDS = {
     "gielda": (
         "giełd",
@@ -350,23 +289,10 @@ TOPIC_KEYWORDS = {
         "azj",
         "europ",
     ),
-=======
-# Tematyczne sygnały: wymagamy zgodności także przy odczycie STAREGO cache.
-# Weryfikacja z tytułu/opisu to heurystyka; szczegółową selekcję można później
-# rozwinąć o klasyfikator, ale bez wymyślania informacji.
-TOPIC_KEYWORDS = {
-    "gielda": ("giełd", "gield", "akcj", "spółk", "spolk", "wig20", "gpw", "nasdaq", "s&p", "wall street", "stock", "equity", "earnings", "shares", "dow jones", "indeks", "nvidia", "apple", "tesla", "microsoft"),
-    "makroekonomia": ("inflac", "cpi", "pkb", "gdp", "stop", "oprocent", "bank central", "banku central", "fed", "ebc", "ecb", "nbp", "bezroboc", "gospodar", "reces", "monetarn", "interest rate", "inflation", "employment"),
-    "kryptowaluty": ("bitcoin", "btc", "ethereum", "ether", "eth", "krypto", "crypto", "blockchain", "stablecoin", "solana", "altcoin", "binance"),
-    "geopolityka": ("geopolit", "sankcj", "wojn", "konflikt", "nato", "rosj", "ukrain", "chiny", "chinach", "tajwan", "iran", "izrael", "cł", "celn", "taryf", "trade war", "sanction", "war ", "conflict", "diplomac"),
-    "polska_gospodarka": ("polsk", "poland", "nbp", "gus", "gpw", "wig20", "złot", "zlot", "pln", "warszaw", "polskie", "budżet", "budzet", "orlen", "pko bp", "kghm"),
-    "swiatowe_rynki": ("rynk", "market", "wall street", "s&p", "nasdaq", "dow jones", "dax", "nikkei", "surow", "ropa", "oil", "gold", "złot", "giełd", "stock", "indeks", "global", "walut", "currency", "dolar", "dollar", "euro", "azj", "europ"),
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 }
 
 
 def _is_relevant(article: dict, internal_cat: str) -> bool:
-<<<<<<< HEAD
   title = _clean_html(str(article.get("title") or ""))
   description = _clean_html(str(article.get("description") or ""))
   url = str(article.get("url") or "").strip()
@@ -432,42 +358,6 @@ def _looks_polish(text: str) -> bool:
           "ze",
       )
   )
-=======
-    title = _clean_html(str(article.get("title") or ""))
-    description = _clean_html(str(article.get("description") or ""))
-    url = str(article.get("url") or "").strip()
-    source = article.get("source") or ""
-    if isinstance(source, dict):
-        source = source.get("name") or ""
-    if not title or not url.startswith(("https://", "http://")):
-        return False
-    domain = (urlparse(url).hostname or "").lower()
-    low_title = title.casefold()
-    if any(x in domain for x in EXCLUDED_DOMAINS):
-        return False
-    if any(x in low_title for x in EXCLUDED_TITLE_KEYWORDS):
-        return False
-    if "[removed]" in low_title or "[usunięto]" in low_title:
-        return False
-    combined = (title + " " + description).casefold()
-    return any(word in combined for word in TOPIC_KEYWORDS[internal_cat])
-
-
-def _valid_cached_articles(internal_cat: str, limit: int) -> list[dict]:
-    articles = _read_silver_safe(internal_cat, limit=max(limit, 50))
-    articles = [a for a in articles if _is_relevant(a, internal_cat)]
-    articles.sort(key=lambda a: a.get("published_at", ""), reverse=True)
-    return articles[:limit]
-
-
-def _looks_polish(text: str) -> bool:
-    # Polskojęzyczne RSS bez polskich znaków także przechodzą przy ich znanym źródle;
-    # dla NewsAPI ten test odróżnia część nieprzetłumaczonych nagłówków.
-    t = f" {text.lower()} "
-    return bool(re.search(r"[ąćęłńóśźż]", t)) or any(
-        f" {w} " in t for w in ("jest", "oraz", "przez", "polsce", "gospodarka", "rynku", "ceny", "wzrost", "spadek", "banku", "akcje", "inflacja", "nowe", "nowy", "spada", "rośnie", "rosnie", "wobec", "według", "wedlug", "dane", "kurs", "wyniki", "inwestorzy", "prognoza", "zmiany", "reaguje", "po", "na", "dla", "ze")
-    )
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
 
 HEADERS = {
@@ -478,21 +368,12 @@ HEADERS = {
 
 
 def resolve_category(category: str) -> tuple[str, str]:
-<<<<<<< HEAD
   clean = (category or "").strip().lower().replace(" ", "_")
   if clean not in FRONTEND_TO_INTERNAL_CATEGORY:
     raise ValueError(f"Nieobsługiwana kategoria: {category}")
   internal_key = FRONTEND_TO_INTERNAL_CATEGORY[clean]
   frontend_key = INTERNAL_TO_FRONTEND_CATEGORY.get(internal_key, clean)
   return internal_key, frontend_key
-=======
-    clean = (category or "").strip().lower().replace(" ", "_")
-    if clean not in FRONTEND_TO_INTERNAL_CATEGORY:
-        raise ValueError(f"Nieobsługiwana kategoria: {category}")
-    internal_key = FRONTEND_TO_INTERNAL_CATEGORY[clean]
-    frontend_key = INTERNAL_TO_FRONTEND_CATEGORY.get(internal_key, clean)
-    return internal_key, frontend_key
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
 
 def _hash_id(prefix: str, url: str) -> str:
@@ -526,7 +407,6 @@ def _normalize_iso_date(raw_date: str | None, fallback_iso: str) -> str:
 
 
 def _translate_titles_batch(titles: list[str]) -> list[str]:
-<<<<<<< HEAD
   if not titles:
     return []
 
@@ -547,16 +427,6 @@ def _translate_titles_batch(titles: list[str]) -> list[str]:
             response_mime_type="application/json",
             temperature=0.1,
         ),
-=======
-    if not titles:
-        return []
-
-    prompt = (
-        "Przetłumacz poniższe tytuły i opisy wiadomości finansowych i geopolitycznych na naturalny, "
-        "rzeczowy język polski. Zachowaj fakty i nazwy własne, nie dopisuj informacji. Zwróć wynik WYŁĄCZNIE jako poprawną tablicę JSON, "
-        "dokładnie w tej samej kolejności: [\"tytuł 1\", \"tytuł 2\", ...].\n\n"
-        f"Nagłówki:\n{json.dumps(titles, ensure_ascii=False)}"
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
     )
     translated = json.loads(response.text)
     if isinstance(translated, list) and len(translated) == len(titles):
@@ -568,19 +438,11 @@ def _translate_titles_batch(titles: list[str]) -> list[str]:
 
 
 def fetch_from_rss(internal_cat: str) -> list[dict]:
-<<<<<<< HEAD
   feeds = RSS_SOURCES.get(internal_cat, [])
   frontend_cat = INTERNAL_TO_FRONTEND_CATEGORY.get(internal_cat, internal_cat)
   now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
   articles = []
   seen_urls = set()
-=======
-    feeds = RSS_SOURCES.get(internal_cat, [])
-    frontend_cat = INTERNAL_TO_FRONTEND_CATEGORY.get(internal_cat, internal_cat)
-    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    articles = []
-    seen_urls = set()
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   for feed_url, default_source_name in feeds:
     try:
@@ -588,7 +450,6 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
       resp.raise_for_status()
       parsed = feedparser.parse(resp.content)
 
-<<<<<<< HEAD
       for entry in parsed.entries[:15]:
         url = getattr(entry, "link", "").strip()
         title = _clean_html(getattr(entry, "title", ""))
@@ -598,17 +459,6 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
           continue
         if any(kw in title.lower() for kw in EXCLUDED_TITLE_KEYWORDS):
           continue
-=======
-            for entry in parsed.entries[:15]:
-                url = getattr(entry, "link", "").strip()
-                title = _clean_html(getattr(entry, "title", ""))
-                if not url or not title or url in seen_urls:
-                    continue
-                if "kanał rss został" in title.lower() or "komunikat" == title.lower():
-                    continue
-                if any(kw in title.lower() for kw in EXCLUDED_TITLE_KEYWORDS):
-                    continue
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
         source_name = default_source_name
         if hasattr(entry, "source") and isinstance(entry.source, dict):
@@ -627,7 +477,6 @@ def fetch_from_rss(internal_cat: str) -> list[dict]:
               f" {frontend_cat}."
           )
 
-<<<<<<< HEAD
         candidate = {
             "title": title,
             "description": desc,
@@ -702,33 +551,6 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
   if len(all_articles) < 10 and settings.NEWS_API_KEY:
     query = CATEGORY_MAPPING.get(internal_cat, internal_cat)
     raw_articles = []
-=======
-                candidate = {
-                    "title": title, "description": desc, "url": url, "source": source_name
-                }
-                if not _is_relevant(candidate, internal_cat):
-                    continue
-                seen_urls.add(url)
-                articles.append({
-                    "id": _hash_id(frontend_cat, url),
-                    "title": title,
-                    "description": desc,
-                    "source": source_name,
-                    "url": url,
-                    "image_url": None,
-                    "category": internal_cat,
-                    "published_at": pub_iso,
-                    "fetched_at": now_iso,
-                    "language": "pl",
-                })
-        except Exception as e:
-            logger.warning(f"Błąd pobierania kanału RSS {feed_url}: {e}")
-
-    return articles
-
-
-def fetch_and_process_category(category_key: str) -> list[dict]:
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
     try:
       raw_articles = get_news(query, page_size=8)
     except Exception as e:
@@ -740,7 +562,6 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
       url = (art.get("url") or "").strip().lower()
       title = (art.get("title") or "").strip().lower()
 
-<<<<<<< HEAD
       if not url or not title or "[removed]" in title or url in seen_urls:
         continue
       if any(domain in url or domain in source_name for domain in EXCLUDED_DOMAINS):
@@ -798,35 +619,10 @@ def fetch_and_process_category(category_key: str) -> list[dict]:
           "fetched_at": now_iso,
           "language": "pl",
       })
-=======
-    if len(all_articles) < 10 and settings.NEWS_API_KEY:
-        query = CATEGORY_MAPPING.get(internal_cat, internal_cat)
-        raw_articles = []
-        try:
-            raw_articles = get_news(query, page_size=8)
-        except Exception as e:
-            logger.warning(f"NewsAPI niedostępne dla {internal_cat}: {e}")
-
-        filtered_newsapi = []
-        for art in raw_articles:
-            source_name = (art.get("source", {}).get("name") or "").lower()
-            url = (art.get("url") or "").strip().lower()
-            title = (art.get("title") or "").strip().lower()
-
-            if not url or not title or "[removed]" in title or url in seen_urls:
-                continue
-            if any(domain in url or domain in source_name for domain in EXCLUDED_DOMAINS):
-                continue
-            if any(kw in title for kw in EXCLUDED_TITLE_KEYWORDS):
-                continue
-            if not _is_relevant({"title": art.get("title"), "description": art.get("description"), "url": art.get("url"), "source": source_name}, internal_cat):
-                continue
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   all_articles = [a for a in all_articles if _is_relevant(a, internal_cat)]
   all_articles.sort(key=lambda x: x.get("published_at", ""), reverse=True)
 
-<<<<<<< HEAD
   if all_articles and not IS_VERCEL:
     save_news_to_silver(internal_cat, all_articles)
 
@@ -843,52 +639,6 @@ def _format_article_for_api(article: dict, frontend_cat: str) -> dict:
       else article.get("imageUrl")
   )
   desc = article.get("description") or article.get("title", "")
-=======
-        selected_newsapi = filtered_newsapi[:5]
-        orig_titles = [a.get("title", "") for a in selected_newsapi]
-        # Tłumaczymy zarówno tytuły, jak i opisy jednym wywołaniem Gemini.
-        descriptions = [_clean_html(a.get("description") or "") for a in selected_newsapi]
-        translated_items = _translate_titles_batch(orig_titles + descriptions)
-        translated = translated_items[:len(orig_titles)]
-        translated_descriptions = translated_items[len(orig_titles):]
-
-        for art, trans_title, trans_desc in zip(selected_newsapi, translated, translated_descriptions):
-            # Nie pokazuj nagłówka po angielsku jako polski, jeśli tłumaczenie zawiodło.
-            if not _looks_polish(str(trans_title)):
-                logger.warning("Pominięto anglojęzyczny nagłówek bez tłumaczenia: %s", str(trans_title)[:80])
-                continue
-            url = art.get("url", "").strip()
-            pub_iso = _normalize_iso_date(art.get("publishedAt"), now_iso)
-            desc = _clean_html(trans_desc) if _looks_polish(str(trans_desc)) else trans_title
-            seen_urls.add(url)
-            all_articles.append({
-                "id": _hash_id(frontend_cat, url),
-                "title": trans_title,
-                "description": desc,
-                "source": art.get("source", {}).get("name", "NewsAPI"),
-                "url": url,
-                "image_url": art.get("urlToImage"),
-                "category": internal_cat,
-                "published_at": pub_iso,
-                "fetched_at": now_iso,
-                "language": "pl",
-            })
-
-    all_articles = [a for a in all_articles if _is_relevant(a, internal_cat)]
-    all_articles.sort(key=lambda x: x.get("published_at", ""), reverse=True)
-
-    _write_silver_safe(internal_cat, all_articles)
-
-    return all_articles
-
-
-def _format_article_for_api(article: dict, frontend_cat: str) -> dict:
-    url = article.get("url", "")
-    art_id = article.get("id") or _hash_id(frontend_cat, url)
-    pub = article.get("published_at") or article.get("publishedAt") or ""
-    img = article.get("image_url") if "image_url" in article else article.get("imageUrl")
-    desc = article.get("description") or article.get("title", "")
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   return {
       "id": art_id,
@@ -904,7 +654,6 @@ def _format_article_for_api(article: dict, frontend_cat: str) -> dict:
   }
 
 
-<<<<<<< HEAD
 def get_news_full_payload(
     category: str, limit: int = 25, refresh: bool = False
 ) -> dict:
@@ -916,18 +665,6 @@ def get_news_full_payload(
     articles = [a for a in fetched if _is_relevant(a, internal_cat)]
     if not articles:
       articles = _valid_cached_articles(internal_cat, limit)
-=======
-def get_news_full_payload(category: str, limit: int = 25, refresh: bool = False) -> dict:
-    internal_cat, frontend_cat = resolve_category(category)
-
-    articles = [] if refresh else _valid_cached_articles(internal_cat, limit)
-    if not articles or len(articles) < 3:
-        fetched = fetch_and_process_category(internal_cat)
-        # Filtruj ponownie nawet gdy w cache wciąż pozostają stare niepoprawne rekordy.
-        articles = [a for a in fetched if _is_relevant(a, internal_cat)]
-        if not articles:
-            articles = _valid_cached_articles(internal_cat, limit)
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   formatted_articles = [
       _format_article_for_api(a, frontend_cat) for a in articles[:limit]
@@ -946,7 +683,6 @@ def get_news_full_payload(category: str, limit: int = 25, refresh: bool = False)
 
 
 def latest_news(symbol: str) -> NewsResponse:
-<<<<<<< HEAD
   try:
     internal_cat, _ = resolve_category(symbol)
     articles = _valid_cached_articles(internal_cat, 25)
@@ -977,32 +713,6 @@ def latest_news(symbol: str) -> NewsResponse:
         ]
       except Exception:
         articles = []
-=======
-    try:
-        internal_cat, _ = resolve_category(symbol)
-        articles = _valid_cached_articles(internal_cat, 25)
-        if not articles:
-            articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)]
-    except ValueError:
-        clean_sym = symbol.strip().upper()
-        articles = _read_silver_safe(clean_sym.lower(), limit=15)
-        if not articles:
-            try:
-                raw = get_news(clean_sym, page_size=8)
-                now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                articles = [
-                    {
-                        "title": r.get("title", "Brak tytułu"),
-                        "source": r.get("source", {}).get("name", "NewsAPI"),
-                        "published_at": _normalize_iso_date(r.get("publishedAt"), now_iso),
-                        "url": r.get("url", ""),
-                    }
-                    for r in raw
-                    if r.get("title") and r.get("url")
-                ]
-            except Exception:
-                articles = []
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   articles_list = [
       NewsArticle(
@@ -1017,7 +727,6 @@ def latest_news(symbol: str) -> NewsResponse:
 
 
 def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
-<<<<<<< HEAD
   internal_cat, frontend_cat = resolve_category(category)
   now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -1028,14 +737,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
         for a in fetch_and_process_category(internal_cat)
         if _is_relevant(a, internal_cat)
     ][:10]
-=======
-    internal_cat, frontend_cat = resolve_category(category)
-    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    articles = [] if refresh else _valid_cached_articles(internal_cat, 10)
-    if not articles:
-        articles = [a for a in fetch_and_process_category(internal_cat) if _is_relevant(a, internal_cat)][:10]
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   if not articles:
     return {
@@ -1056,7 +757,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
       for a in articles[:6]
   ]
 
-<<<<<<< HEAD
   if not refresh:
     cached = get_news_gold_analysis(internal_cat)
     if cached and isinstance(cached, dict) and cached.get("analyses"):
@@ -1075,26 +775,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
         "publishedAt": art.get("published_at", ""),
         "description": art.get("description", ""),
     })
-=======
-    if not refresh:
-        cached = _read_gold_safe(internal_cat)
-        if cached and isinstance(cached, dict) and cached.get("analyses"):
-            cached_ids = cached.get("source_signature", [])
-            if cached_ids == current_top_ids:
-                cached["category"] = frontend_cat
-                return cached
-
-    articles_context = []
-    for idx, art in enumerate(articles[:6], start=1):
-        art_id = art.get("id") or _hash_id(frontend_cat, art.get("url", ""))
-        articles_context.append({
-            "id": art_id,
-            "title": art.get("title", ""),
-            "source": art.get("source", ""),
-            "publishedAt": art.get("published_at", ""),
-            "description": art.get("description", ""),
-        })
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
 
   prompt = (
       "Jesteś analitykiem rynkowym platformy GeoMarket Intelligence.\n"
@@ -1220,7 +900,6 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
       cached["stale"] = True
       return cached
 
-<<<<<<< HEAD
     default_markets = DEFAULT_MARKETS_BY_CATEGORY.get(
         internal_cat, ["Rynki finansowe"]
     )
@@ -1260,48 +939,3 @@ def get_category_ai_analysis(category: str, refresh: bool = False) -> dict:
 
 def analyze_news_sentiment(category: str) -> dict:
   return get_category_ai_analysis(category, refresh=False)
-=======
-        _write_gold_safe(internal_cat, result_payload)
-        return result_payload
-
-    except Exception as e:
-        logger.error(f"Błąd analizy Gemini dla kategorii {frontend_cat}: {e}")
-        cached = _read_gold_safe(internal_cat)
-        if cached and isinstance(cached, dict) and cached.get("analyses"):
-            cached["category"] = frontend_cat
-            cached["stale"] = True
-            return cached
-
-        default_markets = DEFAULT_MARKETS_BY_CATEGORY.get(internal_cat, ["Rynki finansowe"])
-        fallback_analysis = {
-            "id": f"{frontend_cat}-analysis-fallback",
-            "title": f"Przegląd wiadomości: {articles_context[0]['title'][:70]}",
-            "summary": (
-                f"Usługa generowania analiz AI (Gemini) jest chwilowo przeciążona. "
-                f"Pobrano {len(articles_context)} aktualnych artykułów źródłowych dla kategorii '{frontend_cat}' "
-                f"(m.in. z: {', '.join( sorted({a['source'] for a in articles_context[:3]}) )})."
-            ),
-            "affectedMarkets": default_markets,
-            "sentiment": "neutral",
-            "riskLevel": "medium",
-            "uncertainty": "medium",
-            "potentialImpact": "Wymagana ponowna próba analizy po zwolnieniu limitów API.",
-            "market_impact": "Wymagana ponowna próba analizy po zwolnieniu limitów API.",
-            "sourceArticleIds": [a["id"] for a in articles_context[:3]],
-        }
-        return {
-            "category": frontend_cat,
-            "generatedAt": now_iso,
-            "updated_at": now_iso,
-            "summary": fallback_analysis["summary"],
-            "sentiment": "neutral",
-            "market_impact": fallback_analysis["potentialImpact"],
-            "uncertainty": "medium",
-            "aiUnavailable": True,
-            "analyses": [fallback_analysis],
-        }
-
-
-def analyze_news_sentiment(category: str) -> dict:
-    return get_category_ai_analysis(category, refresh=False)
->>>>>>> c6357038517f74371f6fa94bd869928bf5e64b8a
