@@ -1,0 +1,32 @@
+# Docker Compose platformy GeoMarket Intelligence (autor: Sebastian Michulec).
+# Etap 0: tylko MySQL. Kolejne usługi (Kafka, Kafka UI, backend, serwis AI, frontend)
+# dochodzą w następnych etapach.
+#
+# Uruchomienie (z katalogu głównego repozytorium, wymaga pliku .env — wzór w .env.example):
+#   docker compose up -d
+name: geomarket
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Ustaw MYSQL_ROOT_PASSWORD w pliku .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-geomarket}
+      MYSQL_USER: ${MYSQL_USER:-geomarket}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Ustaw MYSQL_PASSWORD w pliku .env}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Skrypty wykonywane tylko przy pierwszym utworzeniu bazy (np. baza testowa).
+      - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mysql_data:

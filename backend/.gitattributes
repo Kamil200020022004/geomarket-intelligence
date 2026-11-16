@@ -1,0 +1,2 @@
+# Skrypty powłoki uruchamiane w kontenerach Linux muszą mieć końce linii LF (nie CRLF z Windows).
+*.sh text eol=lf
