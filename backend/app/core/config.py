@@ -59,6 +59,23 @@ class Settings(BaseSettings):
     # Dla reCAPTCHA v3: minimalna ocena (0.0–1.0). Dla v2 odpowiedź nie zawiera oceny i próg jest pomijany.
     recaptcha_min_score: float = 0.5
 
+    # --- Serwis AI Patryka (backend-ai) ---
+    # Adres wewnętrzny; przeglądarka nigdy nie łączy się z nim bezpośrednio.
+    ai_service_url: str = "http://127.0.0.1:8001"
+    # Odpowiedzi Gemini potrafią trwać kilkadziesiąt sekund.
+    ai_timeout_seconds: float = 60.0
+    # Czas świeżości odpowiedzi w cache (sekundy); po nim odpowiedź jest pobierana ponownie.
+    ai_cache_ttl_seconds: int = 600
+    news_cache_ttl_seconds: int = 300
+    # Jak długo trzymać ostatnią udaną odpowiedź na wypadek awarii serwisu AI (sekundy).
+    ai_stale_max_age_seconds: int = 24 * 3600
+    # Po błędzie połączenia: przez tyle sekund nie próbujemy ponownie (odpowiedź od razu z cache albo 503).
+    ai_retry_after_seconds: float = 15.0
+
+    # --- Dane rynkowe ---
+    # test = dane testowe generowane w kodzie (etap 2); lakehouse = tabele Gold (etap 3).
+    market_data_source: str = "test"
+
     # --- Lakehouse (Delta Lake) ---
     # Wspólny katalog główny Lakehouse dla obu potoków (patrz docs/konwencja_lakehouse.md).
     lakehouse_root: Path = REPO_ROOT / "data" / "lakehouse"

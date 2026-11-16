@@ -6,15 +6,25 @@ Dokumentacja Swagger: http://127.0.0.1:8000/docs
 """
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 
-from app.api import auth, favorites, health
+from app.api import ai_proxy, auth, favorites, health, market
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+from app.services import ai_gateway
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    yield
+    # Zamknięcie puli połączeń HTTP do serwisu AI przy wyłączaniu serwera.
+    ai_gateway.close_client()
 
 
 def create_app() -> FastAPI:
@@ -23,6 +33,8 @@ def create_app() -> FastAPI:
         level=settings.log_level.upper(),
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     )
+    # httpx loguje każde zapytanie wychodzące na poziomie INFO — wystarczą nam ostrzeżenia.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     app = FastAPI(
         title="GeoMarket Intelligence — API",
@@ -31,7 +43,8 @@ def create_app() -> FastAPI:
             "dane rynkowe z potoku strumieniowego oraz pośredniczenie w zapytaniach do serwisu AI. "
             "Analizy mają charakter wyłącznie informacyjny i nie stanowią porady inwestycyjnej."
         ),
-        version="0.1.0",
+        version="0.2.0",
+        lifespan=lifespan,
     )
 
     # CORS: przeglądarka pozwoli frontendowi wołać API tylko z adresów z listy.
@@ -52,6 +65,8 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(favorites.router)
+    app.include_router(market.router)
+    app.include_router(ai_proxy.router)
     return app
 
 

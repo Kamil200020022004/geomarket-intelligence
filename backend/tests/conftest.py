@@ -21,6 +21,7 @@ os.environ["RESEND_FROM_EMAIL"] = ""
 os.environ["RECAPTCHA_SECRET_KEY"] = ""
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
 
+import httpx  # noqa: E402
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
@@ -98,3 +99,40 @@ def login(client: TestClient, email: str = "jan@example.com", password: str = "t
 
 def bearer(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+class FakeAIService:
+    """Atrapa serwisu AI Patryka (httpx.MockTransport): odpowiedzi ustawiane w teście, zapis wywołań."""
+
+    def __init__(self) -> None:
+        self.routes: dict[tuple[str, str], tuple[int, object]] = {}
+        self.calls: list[httpx.Request] = []
+        self.down = False
+
+    def respond(self, method: str, path: str, status: int = 200, body: object = None) -> None:
+        self.routes[(method, path)] = (status, body if body is not None else {})
+
+    def handler(self, request: httpx.Request) -> httpx.Response:
+        self.calls.append(request)
+        if self.down:
+            raise httpx.ConnectError("serwis AI wyłączony", request=request)
+        status, body = self.routes.get((request.method, request.url.path), (404, {"detail": "Not Found"}))
+        return httpx.Response(status, json=body)
+
+    def calls_to(self, path: str) -> list[httpx.Request]:
+        return [call for call in self.calls if call.url.path == path]
+
+
+@pytest.fixture
+def ai_service(monkeypatch) -> FakeAIService:
+    from app.services import ai_gateway
+
+    fake = FakeAIService()
+    client = httpx.Client(base_url="http://ai.test", transport=httpx.MockTransport(fake.handler))
+    monkeypatch.setattr(ai_gateway, "_client", client)
+    ai_gateway.cache.clear()
+    ai_gateway.reset_breaker()
+    yield fake
+    ai_gateway.cache.clear()
+    ai_gateway.reset_breaker()
+    client.close()

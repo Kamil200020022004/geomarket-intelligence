@@ -2,7 +2,7 @@
 
 Autor: Sebastian Michulec. Serwis FastAPI, przez który frontend rozmawia z całym systemem: konta użytkowników, ulubione, dane rynkowe z potoku strumieniowego (Kafka → Delta Lake) oraz pośredniczenie w zapytaniach do serwisu AI (`backend-ai`, port 8001).
 
-Stan: **etap 1**: szkielet, MySQL z migracjami, konta (`/auth/*`), ulubione (`/api/favorites/*`), konwencja Lakehouse.
+Stan: **etap 2**: konta (`/auth/*`), ulubione (`/api/favorites/*`), dane dla zakładek (`/api/stocks`, `/api/crypto/top`, `/api/macro`, `/api/dashboard/markets` — na razie dane testowe), pośredniczenie do serwisu AI z cache (`/chat`, `/news`, `/stock/...`), konwencja Lakehouse.
 
 ## Wymagania (Windows)
 
@@ -56,6 +56,8 @@ Polecenia w PowerShell, z katalogu głównego repozytorium.
 | http://127.0.0.1:8000/health/ready | Czy baza danych jest dostępna (503, jeśli nie) |
 | `/auth/register`, `/auth/login`, `/auth/me`, `/auth/logout`, `/auth/forgot-password`, `/auth/reset-password` | Konta (szczegóły i przykłady w Swaggerze) |
 | `/api/favorites/{stock\|crypto\|macro}` | Ulubione zalogowanego użytkownika |
+| `/api/stocks`, `/api/crypto/top`, `/api/macro`, `/api/dashboard/markets` | Dane dla zakładek Giełda, Krypto, Makro i strony głównej |
+| `/chat`, `/news`, `/news/analysis`, `/stock/...` | Zapytania AI przekazywane do serwisu AI (`AI_SERVICE_URL`, domyślnie port 8001) |
 | `127.0.0.1:3306` | MySQL (DBeaver / MySQL Workbench; użytkownik i hasło z `.env`) |
 
 ## Testy
@@ -72,6 +74,11 @@ Testy oznaczone `integration` wymagają działającego MySQL (`docker compose up
 
 Bez `RESEND_API_KEY` w trybie `APP_ENV=development` backend nie wysyła maila, tylko wypisuje link resetu w konsoli. Wystarczy go skopiować do przeglądarki.
 
+## Serwis AI
+
+Czat, newsy i analizy wymagają działającego serwisu AI (`backend-ai`, port 8001, instrukcja w jego README). Bez niego bramka działa dalej: zapytania AI zwracają 503 albo ostatnią zapamiętaną odpowiedź, a wskaźniki makro mają wartość `null`.
+
 ## Dokumentacja
 
+- [docs/integracja_frontendu.md](docs/integracja_frontendu.md): podłączenie frontendu, mapa pól, gotowe adaptery JS
 - [docs/konwencja_lakehouse.md](docs/konwencja_lakehouse.md): wspólne zasady Lakehouse dla obu potoków
