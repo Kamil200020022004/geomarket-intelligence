@@ -2,7 +2,7 @@
 
 Autor: Sebastian Michulec. Serwis FastAPI, przez który frontend rozmawia z całym systemem: konta użytkowników, ulubione, dane rynkowe z potoku strumieniowego (Kafka → Delta Lake) oraz pośredniczenie w zapytaniach do serwisu AI (`backend-ai`, port 8001).
 
-Stan: **etap 0**, szkielet aplikacji, MySQL, migracje, konwencja Lakehouse.
+Stan: **etap 1**: szkielet, MySQL z migracjami, konta (`/auth/*`), ulubione (`/api/favorites/*`), konwencja Lakehouse.
 
 ## Wymagania (Windows)
 
@@ -14,7 +14,7 @@ Stan: **etap 0**, szkielet aplikacji, MySQL, migracje, konwencja Lakehouse.
 
 Polecenia w PowerShell, z katalogu głównego repozytorium.
 
-1. Konfiguracja: skopiuj wzór i uzupełnij hasła `MYSQL_PASSWORD` i `MYSQL_ROOT_PASSWORD`.
+1. Konfiguracja: skopiuj wzór i uzupełnij co najmniej `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` i `JWT_SECRET_KEY` (opis każdej zmiennej jest w pliku).
 
    ```powershell
    Copy-Item .env.example .env
@@ -54,6 +54,8 @@ Polecenia w PowerShell, z katalogu głównego repozytorium.
 | http://127.0.0.1:8000/docs | Dokumentacja Swagger (OpenAPI) |
 | http://127.0.0.1:8000/health | Czy proces działa |
 | http://127.0.0.1:8000/health/ready | Czy baza danych jest dostępna (503, jeśli nie) |
+| `/auth/register`, `/auth/login`, `/auth/me`, `/auth/logout`, `/auth/forgot-password`, `/auth/reset-password` | Konta (szczegóły i przykłady w Swaggerze) |
+| `/api/favorites/{stock\|crypto\|macro}` | Ulubione zalogowanego użytkownika |
 | `127.0.0.1:3306` | MySQL (DBeaver / MySQL Workbench; użytkownik i hasło z `.env`) |
 
 ## Testy
@@ -64,12 +66,12 @@ cd backend
 pytest
 ```
 
-Testy oznaczone `integration` wymagają działającego MySQL (`docker compose up -d`). Bez niego są pomijane.
+Testy oznaczone `integration` wymagają działającego MySQL (`docker compose up -d`). Bez niego są pomijane. Testy używają osobnej bazy `geomarket_test` i nigdy nie łączą się z Resend ani Google (atrapy).
+
+## Reset hasła lokalnie
+
+Bez `RESEND_API_KEY` w trybie `APP_ENV=development` backend nie wysyła maila, tylko wypisuje link resetu w konsoli. Wystarczy go skopiować do przeglądarki.
 
 ## Dokumentacja
 
 - [docs/konwencja_lakehouse.md](docs/konwencja_lakehouse.md): wspólne zasady Lakehouse dla obu potoków
-- [docs/opis_dzialania.md](docs/opis_dzialania.md): jak działa backend (komponenty, przepływy)
-- [docs/decyzje.md](docs/decyzje.md): dziennik decyzji projektowych
-- [docs/moja_czesc.md](docs/moja_czesc.md): zakres autorstwa
-- [docs/zrodla.md](docs/zrodla.md): źródła

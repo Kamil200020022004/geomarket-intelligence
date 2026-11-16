@@ -4,6 +4,8 @@ Wartości poufne (hasła, klucze) nigdy nie są wpisane w kod. Lista wszystkich
 zmiennych wraz z opisem znajduje się w pliku `.env.example` w katalogu głównym repozytorium.
 """
 
+import logging
+import secrets
 from functools import lru_cache
 from pathlib import Path
 
@@ -35,6 +37,28 @@ class Settings(BaseSettings):
     mysql_user: str = "geomarket"
     mysql_password: str = ""
 
+    # --- Konta i tokeny ---
+    # Sekret podpisu JWT (HS256), min. 32 znaki. Pusty: w development/test generowany przy starcie
+    # (sesje nie przetrwają restartu), w production — błąd startu.
+    jwt_secret_key: str = ""
+    # Ważność sesji jak w prototypie logowania: 8 godzin.
+    access_token_ttl_minutes: int = 8 * 60
+    password_reset_ttl_minutes: int = 15
+    # Adres frontendu używany w linku resetu hasła: {FRONTEND_URL}/reset-password?token=...
+    frontend_url: str = "http://localhost:5173"
+    # Limity zapytań do endpointów kont (ochrona przed zgadywaniem haseł i spamem).
+    rate_limit_enabled: bool = True
+
+    # --- Resend (e-maile z linkiem resetu) ---
+    resend_api_key: str = ""
+    resend_from_email: str = ""
+
+    # --- Google reCAPTCHA (weryfikacja rejestracji) ---
+    # Pusty klucz = weryfikacja wyłączona (praca lokalna). Ustawiony = token wymagany.
+    recaptcha_secret_key: str = ""
+    # Dla reCAPTCHA v3: minimalna ocena (0.0–1.0). Dla v2 odpowiedź nie zawiera oceny i próg jest pomijany.
+    recaptcha_min_score: float = 0.5
+
     # --- Lakehouse (Delta Lake) ---
     # Wspólny katalog główny Lakehouse dla obu potoków (patrz docs/konwencja_lakehouse.md).
     lakehouse_root: Path = REPO_ROOT / "data" / "lakehouse"
@@ -58,4 +82,12 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Zwraca jedną, współdzieloną instancję ustawień (wczytaną raz przy starcie)."""
-    return Settings()
+    settings = Settings()
+    if len(settings.jwt_secret_key) < 32:
+        if settings.app_env == "production":
+            raise RuntimeError("JWT_SECRET_KEY musi mieć co najmniej 32 znaki w środowisku production.")
+        logging.getLogger(__name__).warning(
+            "Brak JWT_SECRET_KEY — wygenerowano tymczasowy sekret (sesje nie przetrwają restartu)."
+        )
+        settings.jwt_secret_key = secrets.token_urlsafe(48)
+    return settings

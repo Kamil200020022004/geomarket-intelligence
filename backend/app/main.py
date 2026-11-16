@@ -9,10 +9,12 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
 
-from app.api import health
+from app.api import auth, favorites, health
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
+from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
 
 def create_app() -> FastAPI:
@@ -42,7 +44,14 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(app)
+
+    # Limity zapytań (SlowAPI wymaga limitera w app.state).
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
     app.include_router(health.router)
+    app.include_router(auth.router)
+    app.include_router(favorites.router)
     return app
 
 

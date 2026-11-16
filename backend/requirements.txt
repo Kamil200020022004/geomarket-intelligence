@@ -1,10 +1,18 @@
-# Zależności uruchomieniowe backendu (wersje zamrożone przy instalacji, 15.11.2026).
+# Zależności uruchomieniowe backendu (wersje zamrożone przy instalacji).
 fastapi==0.163.1
 uvicorn[standard]==0.54.0
 pydantic==2.14.3
 pydantic-settings==2.16.3
+# Walidacja adresów e-mail (pydantic EmailStr).
+email-validator==2.4.0
 SQLAlchemy==2.1.8
 alembic==1.20.1
 PyMySQL==1.2.4
 # Wymagany przez PyMySQL do domyślnej metody uwierzytelniania MySQL 8 (caching_sha2_password).
 cryptography==50.0.2
+# Konta: tokeny JWT, hashowanie haseł Argon2id, limity zapytań.
+PyJWT==2.15.1
+argon2-cffi==25.1.0
+slowapi==0.1.10
+# Klient HTTP: Resend (e-maile), Google reCAPTCHA, w etapie 2 serwis AI.
+httpx==0.28.1
