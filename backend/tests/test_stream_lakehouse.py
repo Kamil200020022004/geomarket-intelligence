@@ -188,3 +188,20 @@ def test_stocks_endpoint_reads_lakehouse(client, tmp_path):
     stocks = {s["symbol"]: s for s in client.get("/api/stocks").json()}
     assert stocks["AAPL"]["price"] == 100.0 and stocks["AAPL"]["source"] == "lakehouse"
     assert stocks["CCC"]["price"] is None and stocks["CCC"]["history"] == []  # niedostępny w Yahoo
+
+
+def test_filtered_read_works_after_merge_rewrote_file(tmp_path):
+    """Regresja (D-034): MERGE aktualizujący istniejący wiersz przepisuje plik z kolumnami `string_view`.
+
+    Filtry PyArrow Dataset nie porównują wtedy `string` ze `string_view` (ArrowNotImplementedError),
+    przez co konsument padał na drugiej paczce. Odczyt przez `lakehouse.read()` (SQL) musi działać.
+    """
+    def row(symbol: str, close: float) -> dict:
+        return {"symbol": symbol, "ts": T0, "open": close, "high": close, "low": close, "close": close,
+                "volume": 1.0, "last_ts": T0, "ingested_at": T0}
+
+    lh.upsert(tmp_path, lh.GOLD_OHLC_1H, lh.to_table(lh.GOLD_OHLC_1H, [row("AAPL", 1.0), row("PKN", 1.0)]))
+    lh.upsert(tmp_path, lh.GOLD_OHLC_1H, lh.to_table(lh.GOLD_OHLC_1H, [row("AAPL", 2.0)]))  # aktualizacja wiersza
+    result = lh.read(tmp_path, lh.GOLD_OHLC_1H, f"symbol IN ('AAPL') AND ts >= {lh.sql_ts(T0)}", ["symbol", "close"])
+    assert result == [{"symbol": "AAPL", "close": 2.0}]
+    assert gold.update_latest_prices(tmp_path, {"AAPL", "PKN"}, T0) == 2  # ścieżka, na której padał konsument
