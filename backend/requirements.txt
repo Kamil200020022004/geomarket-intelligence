@@ -16,3 +16,9 @@ argon2-cffi==25.1.0
 slowapi==0.1.10
 # Klient HTTP: Resend (e-maile), Google reCAPTCHA, w etapie 2 serwis AI.
 httpx==0.28.1
+# Potok strumieniowy: klient Kafki, Delta Lake (delta-rs, bez Sparka), dane rynkowe.
+confluent-kafka==2.16.1
+deltalake==1.6.6
+pyarrow==26.0.1
+pandas==3.1.1
+yfinance==1.8.0

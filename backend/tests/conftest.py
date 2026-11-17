@@ -20,6 +20,8 @@ os.environ["RESEND_API_KEY"] = ""
 os.environ["RESEND_FROM_EMAIL"] = ""
 os.environ["RECAPTCHA_SECRET_KEY"] = ""
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
+# Testy kontraktu endpointów rynkowych działają na deterministycznych danych testowych.
+os.environ["MARKET_DATA_SOURCE"] = "test"
 
 import httpx  # noqa: E402
 import pytest  # noqa: E402

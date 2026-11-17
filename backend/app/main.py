@@ -5,7 +5,6 @@ Uruchomienie lokalne (z katalogu backend/):
 Dokumentacja Swagger: http://127.0.0.1:8000/docs
 """
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -16,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api import ai_proxy, auth, favorites, health, market
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
+from app.core.logging_setup import configure_logging
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.services import ai_gateway
 
@@ -29,12 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    logging.basicConfig(
-        level=settings.log_level.upper(),
-        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-    )
-    # httpx loguje każde zapytanie wychodzące na poziomie INFO — wystarczą nam ostrzeżenia.
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    configure_logging(settings.log_level)
 
     app = FastAPI(
         title="GeoMarket Intelligence — API",

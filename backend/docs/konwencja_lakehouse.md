@@ -1,6 +1,6 @@
 # Konwencja Lakehouse — GeoMarket Intelligence
 
-Autor: Sebastian Michulec. Wersja 1.0 (15.11.2026). Obowiązuje oba potoki: strumieniowy (notowania) i wsadowy (makro, newsy, GDELT, wyniki AI).
+Autor: Sebastian Michulec. Wersja 1.1 (17.11.2026). Obowiązuje oba potoki: strumieniowy (notowania) i wsadowy (makro, newsy, GDELT, wyniki AI).
 
 Słowa **MUSI** oznaczają wymóg, bez którego dane z obu potoków nie tworzą jednego Lakehouse. **ZALECANE** to dobra praktyka, której brak nie psuje integracji.
 
@@ -64,22 +64,26 @@ Obecne ścieżki potoku wsadowego (`silver/macro/<wskaźnik>`, `silver/gdelt/eve
 
 ## 6. Tabele domeny `market` (Sebastian)
 
-Wstępne schematy; szczegóły ustalane w etapie 3 i dopisywane tutaj. Kolumny oznaczone ★ to **kontrakt** dla innych potoków. Nie zmieniają się bez uzgodnienia, nowe kolumny mogą dochodzić.
+Zaimplementowane w etapie 3 (`backend/app/stream/lakehouse.py`). Kolumny oznaczone ★ to **kontrakt** dla innych potoków: nie zmieniają się bez uzgodnienia, nowe kolumny mogą dochodzić.
 
-**Wymiar** `gold/market/dim_instrument`: jeden wiersz na instrument.
-`symbol`★ (string, klucz, np. `AAPL`, `EUR/PLN`, `bitcoin`), `name`★, `asset_class`★ (`stock` | `index` | `fx` | `commodity` | `crypto`), `market` (np. `NASDAQ`, `GPW`), `currency`★, `source` (`yahoo` | `coingecko`), `source_symbol` (np. `EURPLN=X`), `ingested_at`.
+| Tabela | Warstwa | Klucz (MERGE) | Partycje | Zawartość |
+| --- | --- | --- | --- | --- |
+| `bronze/market/raw_messages` | Bronze | — (append) | `ingest_date` | surowe wiadomości z Kafki: `topic`, `kafka_partition`, `kafka_offset`, `message_key`, `kind`, `source`, `fetched_at`, `payload` (JSON), `parse_error`, `ingested_at` |
+| `silver/market/bars` | Silver | `symbol`, `interval`, `ts` | `date` | oczyszczone świece: `interval` = `1h` (historia) albo `1m` (strumień), `open`, `high`, `low`, `close`, `volume`, `source`, `fetched_at`, `ingested_at` |
+| `silver/market/instrument_info` | Silver | `symbol` | — | liczba akcji spółek (`shares`), `currency`, `exchange` |
+| `silver/market/crypto_markets` | Silver | `id`, `ts` | `date` | notowania TOP 100 kryptowalut (CoinGecko) z 7-dniową serią `sparkline_7d` |
+| `gold/market/ohlc_1h` | Gold | `symbol`, `ts` | — | świece godzinowe łączące historię i strumień; `last_ts` = czas ostatniego notowania w świecy |
+| `gold/market/latest_prices` | Gold | `symbol` | — | **ostatnia cena każdego instrumentu — jedno źródło cen w systemie** |
+| `gold/market/crypto_top` | Gold | — (overwrite) | — | ostatnia migawka TOP 100 kryptowalut |
+| `gold/market/dim_instrument` | Gold | — (overwrite) | — | wymiar instrumentów (katalog + liczba akcji) |
 
-**Fakty** `silver/market/prices`: oczyszczone notowania z historią (jedno źródło cen w systemie).
-`symbol`★, `ts`★, `price`★ (double), `volume` (double / null), `currency`★, `asset_class`, `source`, `ingested_at`. Klucz unikalności: (`symbol`, `ts`). Partycjonowanie: `asset_class`.
+**`gold/market/latest_prices`** (kontrakt dla AI): `symbol`★ (np. `AAPL`, `PKN`, `EUR/PLN`, `OIL`, `WIG20`), `name`★, `asset_class`★ (`stock` | `index` | `fx` | `commodity`), `currency`★, `price`★, `change_24h_pct`★ (%, null gdy brak danych sprzed 24 h), `ts`★ (czas ostatniego notowania, UTC), `change_1h_pct`, `change_7d_pct`, `volume_24h`, `market_cap`, `ingested_at`.
 
-**Fakty** `gold/market/ohlc`: świece dla wykresów.
-`symbol`, `interval` (`1h` | `1d`), `ts` (początek świecy), `open`, `high`, `low`, `close`, `volume`, `ingested_at`.
+**`gold/market/dim_instrument`**: `symbol`★, `name`★, `asset_class`★, `market` (`US` | `PL`), `currency`★, `unit`, `source` (`yahoo`), `source_symbol` (np. `PKN.WA`, `EURPLN=X`), `streamed` (false = brak notowań w źródle), `shares`, `ingested_at`.
 
-**Migawka** `gold/market/latest_prices`: ostatnia cena każdego instrumentu, przeznaczona m.in. dla AI.
-`symbol`★, `name`★, `asset_class`★, `currency`★, `price`★, `change_24h_pct`★ (double / null), `ts`★, `ingested_at`.
+Kryptowaluty są w osobnych tabelach (`crypto_markets`, `crypto_top`), identyfikowane przez `id` z CoinGecko (np. `bitcoin`).
 
-**Bronze** `bronze/market/quotes_raw`: surowe wiadomości przekazane przez Kafkę.
-`source`, `source_symbol`, `payload` (JSON jako string), `kafka_topic`, `kafka_partition`, `kafka_offset`, `ingest_date` (partycja), `ingested_at`.
+Zmiany względem wersji 1.0: `silver/market/prices` → `silver/market/bars` (pełne świece OHLC zamiast pojedynczej ceny, partycje po `date` zamiast `asset_class`), `gold/market/ohlc` → `gold/market/ohlc_1h`, `bronze/market/quotes_raw` → `bronze/market/raw_messages`. Kontrakt `latest_prices` bez zmian.
 
 ### Odczyt cen przez potok wsadowy / AI
 
@@ -92,9 +96,49 @@ df = DeltaTable(f"{root}/gold/market/latest_prices").to_pandas()
 row = df[df["symbol"] == "AAPL"]
 ```
 
+Uwaga techniczna: MERGE w delta-rs zapisuje kolumny tekstowe w typie Arrow `string_view`. Filtry `to_pyarrow_dataset()` / `to_pyarrow_table(filters=...)` nie porównują go ze zwykłym `string` (błąd `ArrowNotImplementedError`). Odczyt całej tabeli (`to_pandas()`, jak wyżej) działa; do filtrowania po stronie biblioteki służy `deltalake.QueryBuilder` (SQL).
+
 ## 7. Model danych analitycznych
 
-Schemat gwiazdy: wymiar `dim_instrument` połączony po `symbol` z tabelami faktów `prices` i `ohlc`. Analogicznie zalecany dla domeny `macro`: wymiar wskaźników (`indicator`, `name`, `country`, `unit`, `frequency`) i fakty obserwacji (`indicator`, `ts`, `value`). Diagram powstaje razem z tabelami w etapie 3.
+Schemat gwiazdy domeny `market`: wymiar `dim_instrument` połączony po `symbol` z tabelami faktów `ohlc_1h` (szereg czasowy) i `latest_prices` (stan bieżący).
+
+```mermaid
+erDiagram
+    dim_instrument ||--o{ ohlc_1h : "symbol"
+    dim_instrument ||--o| latest_prices : "symbol"
+    dim_instrument {
+        string symbol PK
+        string name
+        string asset_class
+        string market
+        string currency
+        string source_symbol
+        bool streamed
+        double shares
+    }
+    ohlc_1h {
+        string symbol FK
+        timestamp ts PK "początek godziny, UTC"
+        double open
+        double high
+        double low
+        double close
+        double volume
+        timestamp last_ts
+    }
+    latest_prices {
+        string symbol PK
+        double price
+        double change_1h_pct
+        double change_24h_pct
+        double change_7d_pct
+        double volume_24h
+        double market_cap
+        timestamp ts
+    }
+```
+
+Analogicznie zalecany dla domeny `macro`: wymiar wskaźników (`indicator`, `name`, `country`, `unit`, `frequency`) i fakty obserwacji (`indicator`, `ts`, `value`).
 
 ## 8. Czego nie robimy
 

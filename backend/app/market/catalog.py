@@ -170,3 +170,11 @@ BY_SYMBOL: dict[str, Instrument] = {instrument.symbol: instrument for instrument
 # Kryptowaluty: TOP 100 według kapitalizacji z CoinGecko — lista dynamiczna (zmienia się z rynkiem),
 # więc nie jest wpisana na sztywno; identyfikatorem jest `id` CoinGecko (np. "bitcoin").
 CRYPTO_TOP_N = 100
+
+# Symbole bez notowań z GPW w Yahoo Finance (sprawdzone 17.11.2026): CCC jest dostępne tylko
+# na giełdzie w Stuttgarcie, Santander Bank Polska (obecnie Erste Bank Polska) — brak notowań z GPW.
+# Producent ich nie pobiera; API zwraca je bez ceny (null), dopóki zespół nie zdecyduje o liście.
+UNAVAILABLE_SOURCE_SYMBOLS: frozenset[str] = frozenset({"CCC.WA", "SPL.WA"})
+
+STREAMED: list[Instrument] = [i for i in ALL_YAHOO if i.source_symbol not in UNAVAILABLE_SOURCE_SYMBOLS]
+BY_SOURCE_SYMBOL: dict[str, Instrument] = {i.source_symbol: i for i in ALL_YAHOO}

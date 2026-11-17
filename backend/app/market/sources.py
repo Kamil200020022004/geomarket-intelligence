@@ -8,8 +8,11 @@ bez zmian w endpointach i formatach odpowiedzi.
 
 import hashlib
 import random
+import threading
+import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Protocol
 
 from app.core.config import get_settings
@@ -143,8 +146,101 @@ class TestMarketData:
         return coins
 
 
+# --------------------------------------------------------------------------------------
+# Lakehouse (etap 3) — odczyt tabel Gold zapisywanych przez konsumenta Kafki
+# --------------------------------------------------------------------------------------
+
+
+@dataclass
+class _GoldView:
+    latest: dict[str, dict]
+    history: dict[str, list[tuple[datetime, float]]]
+    coins: list[dict]
+    loaded_at: float
+
+
+class LakehouseMarketData:
+    """Czyta Gold (`latest_prices`, `ohlc_1h`, `crypto_top`) i trzyma je w pamięci przez kilka sekund.
+
+    Tabele są małe (ok. 100 instrumentów × 30 dni × 24 h), więc jeden odczyt na kilkanaście sekund
+    obsługuje dowolną liczbę zapytań HTTP. Delta Lake gwarantuje spójny odczyt (izolacja migawek),
+    nawet gdy konsument w tym samym momencie zapisuje nową wersję tabeli.
+    """
+
+    name = "lakehouse"
+
+    def __init__(self, root: Path, history_days: int, cache_seconds: float) -> None:
+        self.root = root
+        self.history_days = history_days
+        self.cache_seconds = cache_seconds
+        self._view: _GoldView | None = None
+        self._lock = threading.Lock()
+
+    def _load(self) -> _GoldView:
+        from app.stream import lakehouse as lh  # import leniwy: tryb "test" nie ładuje biblioteki deltalake
+
+        latest = {r["symbol"]: r for r in lh.read(self.root, lh.GOLD_LATEST_PRICES)}
+
+        history: dict[str, list[tuple[datetime, float]]] = {}
+        since = datetime.now(UTC) - timedelta(days=self.history_days)
+        rows = lh.read(self.root, lh.GOLD_OHLC_1H, f"ts >= {lh.sql_ts(since)}", columns=["symbol", "ts", "close"])
+        for row in sorted(rows, key=lambda r: r["ts"]):
+            history.setdefault(row["symbol"], []).append((row["ts"], row["close"]))
+
+        coins = lh.read(self.root, lh.GOLD_CRYPTO_TOP)
+        coins.sort(key=lambda r: (r["market_cap_rank"] is None, r["market_cap_rank"] or 0))
+        return _GoldView(latest, history, coins, time.monotonic())
+
+    def _view_now(self) -> _GoldView:
+        with self._lock:
+            if self._view is None or time.monotonic() - self._view.loaded_at > self.cache_seconds:
+                self._view = self._load()
+            return self._view
+
+    def snapshot(self, instrument: Instrument) -> InstrumentSnapshot:
+        view = self._view_now()
+        latest = view.latest.get(instrument.symbol)
+        history = view.history.get(instrument.symbol, [])
+        if latest is None:
+            return InstrumentSnapshot(None, None, None, None, history, None)
+        return InstrumentSnapshot(
+            price=latest["price"],
+            change_24h_pct=_round(latest["change_24h_pct"]),
+            volume=latest["volume_24h"],
+            market_cap=latest["market_cap"],
+            history=history,
+            updated_at=latest["ts"],
+        )
+
+    def top_coins(self, limit: int) -> list[CoinSnapshot]:
+        return [
+            CoinSnapshot(
+                id=c["id"], symbol=c["symbol"], name=c["name"], image=c["image"],
+                market_cap_rank=c["market_cap_rank"], price=c["price"],
+                change_1h_pct=_round(c["change_1h_pct"]), change_24h_pct=_round(c["change_24h_pct"]),
+                change_7d_pct=_round(c["change_7d_pct"]), total_volume=c["total_volume"],
+                market_cap=c["market_cap"], sparkline_7d=list(c["sparkline_7d"] or []), updated_at=c["ts"],
+            )
+            for c in self._view_now().coins[:limit]
+        ]
+
+
+def _round(value: float | None) -> float | None:
+    return None if value is None else round(value, 2)
+
+
+_lakehouse_source: LakehouseMarketData | None = None
+
+
 def get_market_source() -> MarketDataSource:
-    source = get_settings().market_data_source
-    if source == "test":
+    global _lakehouse_source
+    settings = get_settings()
+    if settings.market_data_source == "test":
         return TestMarketData()
-    raise RuntimeError(f"Nieznane źródło danych rynkowych: {source!r} (dostępne w etapie 2: test)")
+    if settings.market_data_source == "lakehouse":
+        if _lakehouse_source is None:
+            _lakehouse_source = LakehouseMarketData(
+                Path(settings.lakehouse_root), settings.chart_history_days, settings.market_cache_seconds
+            )
+        return _lakehouse_source
+    raise RuntimeError(f"Nieznane źródło danych rynkowych: {settings.market_data_source!r} (test | lakehouse)")

@@ -1,10 +1,10 @@
 # Integracja frontendu z bramką API (dla Kamila)
 
-Autor: Sebastian Michulec. Stan: etap 2 (16.11.2026). Bramka API: `http://127.0.0.1:8000`, Swagger: `/docs`.
+Autor: Sebastian Michulec. Stan: etap 3 (17.11.2026). Bramka API: `http://127.0.0.1:8000`, Swagger: `/docs`.
 
 Frontend łączy się **tylko z bramką na porcie 8000**. Bramka obsługuje konta i ulubione, dostarcza notowania z potoku strumieniowego i przekazuje zapytania AI do serwisu Patryka (port 8001). Ścieżki AI (`/chat`, `/news`, `/stock/...`) są takie same jak w serwisie Patryka, więc komponenty AI działają bez zmian.
 
-> **Dane rynkowe są na razie testowe** (`"source": "test"`): kształt odpowiedzi jest docelowy, ale ceny są generowane. Prawdziwe notowania (Yahoo Finance, CoinGecko przez Kafkę) zastąpią je w etapie 3 bez zmiany formatu.
+> **Dane rynkowe są prawdziwe** (`"source": "lakehouse"`): Yahoo Finance i CoinGecko przez Kafkę i Delta Lake, gdy działa potok strumieniowy (instrukcja w `backend/README.md`). Do pracy bez potoku: `MARKET_DATA_SOURCE=test` w `.env` backendu — ten sam format, dane testowe (`"source": "test"`).
 
 ## 1. Konfiguracja
 
@@ -37,7 +37,7 @@ Po stronie backendu adres frontendu musi być na liście `CORS_ORIGINS` (domyśl
 | `components/LoginDrawer.jsx` (rejestracja) | Gdy będzie widget reCAPTCHA: wysyłać token w polu `recaptcha_token` obok `name`, `email`, `password`. Odrzucona captcha → 400 z `detail`. |
 | obsługa błędów | Nowe kody: **429** (zbyt wiele prób, `detail` z komunikatem) i **503** (serwis AI niedostępny, `detail` z komunikatem). Wystarczy wyświetlić `detail`. |
 
-Zakresy wykresów (1D/1W/1M w Giełdzie i Makro, 1H/24H/7D w Krypto): obecnie wycinają ostatnie N punktów. Seria testowa giełdy ma 48 punktów godzinowych, krypto 168 punktów godzinowych (7 dni). Docelowe zakresy uzgodnimy przy etapie 3, gdy będą prawdziwe serie.
+**Zakresy wykresów — prośba o zmianę.** Giełda i Makro: `history` to ceny zamknięcia świec godzinowych z ostatnich 30 dni, ale **tylko z godzin notowań** (spółki USA ok. 7 h dziennie, GPW ok. 8 h, waluty całą dobę w dni robocze). Obecne wycinki „ostatnie 12 / 24 punkty” nie odpowiadają więc 1 dniu / 1 tygodniowi. Proponuję filtrować po czasie: 1D = punkty z ostatnich 24 h od ostatniego punktu, 1W = 7 dni, 1M = cała seria, np. `history.filter(p => new Date(p.time) >= new Date(last.time) - 24 * 3600e3)`. Krypto: `sparkline_in_7d.price` to 168 punktów godzinowych z CoinGecko — obecne wycinki (2 / 24 / całość) są tam poprawne.
 
 ## 4. Endpointy
 
@@ -62,17 +62,17 @@ Zakresy wykresów (1D/1W/1M w Giełdzie i Makro, 1H/24H/7D w Krypto): obecnie wy
 | `symbol` | string | — | katalog (lista ze StockMarket.jsx) |
 | `name` | string | — | katalog |
 | `market` | string | `"Zagraniczny"` / `"Polska"` | katalog |
-| `price` | number / null | waluta notowania (`currency`) | strumień |
-| `change` | number / null | % zmiany 24 h | strumień |
-| `volume` | number / null | liczba akcji | strumień |
-| `marketCap` | number / null | waluta notowania | strumień |
-| `history[]` | `{time: ISO 8601, price: number}` | od najstarszego | strumień |
+| `price` | number / null | waluta notowania (`currency`); null dla CCC i SPL (brak notowań w Yahoo) | strumień |
+| `change` | number / null | % zmiany względem ceny sprzed 24 h | strumień |
+| `volume` | number / null | liczba akcji z ostatnich 24 h | strumień |
+| `marketCap` | number / null | waluta notowania (liczba akcji × cena) | strumień |
+| `history[]` | `{time: ISO 8601, price: number}` | godzinowe, 30 dni, od najstarszego | strumień |
 | `currency` (opcjonalne) | string | `USD` / `PLN` | katalog |
 | `source`, `updated_at` (opcjonalne) | string, ISO 8601 | — | — |
 
 ### Krypto — `GET /api/crypto/top`
 
-Pola jak w CoinGecko `/coins/markets`: `id`, `symbol`, `name`, `image`, `market_cap_rank`, `current_price` (USD), `price_change_percentage_1h_in_currency`, `price_change_percentage_24h_in_currency`, `price_change_percentage_7d_in_currency` (%), `total_volume` (USD), `market_cap` (USD), `sparkline_in_7d.price` (ceny godzinowe z 7 dni, od najstarszej). Opcjonalne: `source`, `updated_at`. Docelowo TOP 100 z CoinGecko; dane testowe: 10 monet, `image = null`.
+Pola jak w CoinGecko `/coins/markets`: `id`, `symbol`, `name`, `image`, `market_cap_rank`, `current_price` (USD), `price_change_percentage_1h_in_currency`, `price_change_percentage_24h_in_currency`, `price_change_percentage_7d_in_currency` (%), `total_volume` (USD), `market_cap` (USD), `sparkline_in_7d.price` (ceny godzinowe z 7 dni, od najstarszej). Opcjonalne: `source`, `updated_at`. TOP 100 z CoinGecko (odświeżane co 5 min); dane testowe: 10 monet, `image = null`.
 
 ### Makro — `GET /api/macro`
 

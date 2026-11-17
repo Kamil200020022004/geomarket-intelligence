@@ -75,6 +75,25 @@ class Settings(BaseSettings):
     # --- Dane rynkowe ---
     # test = dane testowe generowane w kodzie (etap 2); lakehouse = tabele Gold (etap 3).
     market_data_source: str = "test"
+    # Jak długo API trzyma w pamięci odczytane tabele Gold (sekundy) — nie czytamy Delty przy każdym zapytaniu.
+    market_cache_seconds: float = 15.0
+    # Długość serii na wykresach (dni) — punkty godzinowe.
+    chart_history_days: int = 30
+
+    # --- Potok strumieniowy (Kafka) ---
+    kafka_bootstrap_servers: str = "localhost:9092"
+    kafka_consumer_group: str = "geomarket-lakehouse"
+    # Odpytywanie Yahoo Finance o świece minutowe (sekundy).
+    yahoo_poll_seconds: float = 60.0
+    # CoinGecko: darmowy klucz demo ma limit 10 000 zapytań/miesiąc → co 5 min (~8 640/mies.).
+    coingecko_poll_seconds: float = 300.0
+    coingecko_api_key: str = ""
+    # Odświeżanie danych referencyjnych spółek (liczba akcji do kapitalizacji), sekundy.
+    instrument_info_refresh_seconds: float = 24 * 3600
+    # Jednorazowe załadowanie historii: ile dni świec godzinowych.
+    history_days: int = 60
+    # Przy starcie producenta: świece godzinowe z ostatnich dni, które zasypują lukę po przerwie.
+    catch_up_days: int = 5
 
     # --- Lakehouse (Delta Lake) ---
     # Wspólny katalog główny Lakehouse dla obu potoków (patrz docs/konwencja_lakehouse.md).
