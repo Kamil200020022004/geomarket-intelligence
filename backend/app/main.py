@@ -5,6 +5,8 @@ Uruchomienie lokalne (z katalogu backend/):
 Dokumentacja Swagger: http://127.0.0.1:8000/docs
 """
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -17,11 +19,27 @@ from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging_setup import configure_logging
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+from app.market.sources import get_market_source
 from app.services import ai_gateway
+
+logger = logging.getLogger(__name__)
+
+
+def warm_up_market_source() -> None:
+    try:
+        source = get_market_source()
+        if source.name == "lakehouse":
+            source.top_coins(1)
+    except Exception:
+        # Brak tabel albo błąd odczytu nie może blokować startu API — zapytania zwrócą wtedy null.
+        logger.warning("Nie udało się wstępnie wczytać danych rynkowych", exc_info=True)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Rozgrzanie odczytu Gold przy starcie: pierwsze zapytanie użytkownika nie czeka kilku sekund
+    # na załadowanie bibliotek Delta i tabel (zmierzone: 7,6 s bez rozgrzania).
+    await asyncio.to_thread(warm_up_market_source)
     yield
     # Zamknięcie puli połączeń HTTP do serwisu AI przy wyłączaniu serwera.
     ai_gateway.close_client()
