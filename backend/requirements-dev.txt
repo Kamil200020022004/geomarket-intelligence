@@ -1,0 +1,6 @@
+# Zależności do testów i pracy lokalnej (nie trafiają do obrazu produkcyjnego).
+-r requirements.txt
+pytest==9.2.0
+python-dotenv==1.2.4
+# Statyczna kontrola kodu (nieużywane importy, niezdefiniowane nazwy).
+pyflakes==4.1.0
