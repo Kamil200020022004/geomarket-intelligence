@@ -1,6 +1,6 @@
 # Konwencja Lakehouse — GeoMarket Intelligence
 
-Autor: Sebastian Michulec. Wersja 1.1 (17.11.2026). Obowiązuje oba potoki: strumieniowy (notowania) i wsadowy (makro, newsy, GDELT, wyniki AI).
+Autor: Sebastian Michulec. Wersja 1.2 (18.11.2026). Obowiązuje oba potoki: strumieniowy (notowania) i wsadowy (makro, newsy, GDELT, wyniki AI).
 
 Słowa **MUSI** oznaczają wymóg, bez którego dane z obu potoków nie tworzą jednego Lakehouse. **ZALECANE** to dobra praktyka, której brak nie psuje integracji.
 
@@ -140,7 +140,39 @@ erDiagram
 
 Analogicznie zalecany dla domeny `macro`: wymiar wskaźników (`indicator`, `name`, `country`, `unit`, `frequency`) i fakty obserwacji (`indicator`, `ts`, `value`).
 
-## 8. Czego nie robimy
+## 8. Kontrakt danych makro (serwis AI → bramka)
+
+Wskaźniki makro dla zakładki Makro bramka pobiera z serwisu AI (potok wsadowy), a nie z jego tabel w Lakehouse. Stan na 18.11.2026 (kod `backend-ai/app/data_sources/fred.py`, `services/macro_service.py`).
+
+**Źródło:** `GET {AI_SERVICE_URL}/stock/macro/raw` (wewnętrznie `http://backend-ai:8001`). Bramka trzyma odpowiedź 60 min (dane są miesięczne lub kwartalne), czeka na nią najwyżej 10 s.
+
+**Format odpowiedzi:** obiekt JSON z kluczami wskaźników; każdy ma postać
+
+```json
+{"date": "2026-09-01", "value": "3.1", "history": [{"date": "2026-07-01", "value": 3.6}, {"date": "2026-08-01", "value": 3.4}]}
+```
+
+- `date`: data ostatniego odczytu `YYYY-MM-DD` albo `"N/A"`,
+- `value`: ostatnia wartość jako **napis** z liczbą albo `"N/A"` (brak danych lub brak klucza FRED),
+- `history`: do 12 ostatnich odczytów `{date, value: liczba}`, od najstarszego.
+
+| Klucz | Seria FRED | Jednostka | Symbol w zakładce Makro |
+| --- | --- | --- | --- |
+| `CPI_PL` | POLCPIALLMINMEI | % r/r | CPI PL |
+| `CPI_Inflation` | CPIAUCSL | % r/r | CPI USA |
+| `CPI_EU` | CP0000EZ19M086NEST | % r/r | CPI EU |
+| `RATES_PL` | IRSTCI01PLM156N | % | NBP RATE (stopa międzybankowa, nie referencyjna NBP) |
+| `Fed_Interest_Rate` | FEDFUNDS | % | FED RATE |
+| `RATES_EU` | ECBDFR | % | ECB RATE (stopa depozytowa) |
+| `GDP_PL` | CLVMNACSCAB1GQPL | % r/r | GDP PL |
+| `GDP` | GDP | % r/r | GDP USA |
+| `GDP_EU` | CLVMEURSCAB1GQEA19 | % r/r | GDP EU |
+
+**Przetwarzanie w bramce:** napis → liczba, `"N/A"` → `null`, data → ISO 8601 UTC, historia sortowana rosnąco, `change` = różnica w punktach procentowych między dwoma ostatnimi odczytami. Serwis AI niedostępny → `value: null`, `history: []`, `source: "unavailable"` (kursy i surowce działają dalej).
+
+**Zmiany kontraktu:** zmiana kluczy, pól albo jednostek po stronie serwisu AI wymaga wcześniejszej informacji dla bramki. Dane testowe kontraktu: `backend/tests/test_market.py` (`MACRO_RAW`).
+
+## 9. Czego nie robimy
 
 - Nie zapisujemy danych z Lakehouse do Gita.
 - Nie piszemy do cudzych tabel.

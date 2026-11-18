@@ -1,0 +1,9 @@
+# Wykluczenia dla obrazu serwisu AI (plik obok Dockerfile — nie trzeba dodawać pliku w backend-ai/).
+.venv
+venv
+**/__pycache__
+**/*.pyc
+.env
+*.env
+data
+caly_kod_backend_ai.txt

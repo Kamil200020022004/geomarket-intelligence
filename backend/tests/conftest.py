@@ -31,6 +31,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from app.core.config import get_settings  # noqa: E402
+from app.api.market import clear_response_cache  # noqa: E402
 from app.core.rate_limit import limiter  # noqa: E402
 from app.db.session import check_database, engine  # noqa: E402
 from app.main import create_app  # noqa: E402
@@ -66,6 +67,7 @@ def db_clean(migrated_db):
 def client() -> TestClient:
     # raise_server_exceptions=False: testujemy odpowiedź HTTP z handlera błędów, a nie sam wyjątek.
     limiter.reset()
+    clear_response_cache()  # każdy test zaczyna bez zapamiętanych odpowiedzi rynkowych
     return TestClient(create_app(), raise_server_exceptions=False)
 
 

@@ -1,12 +1,31 @@
 # Docker Compose platformy GeoMarket Intelligence (autor: Sebastian Michulec).
-# Etap 3: MySQL, Kafka (tryb KRaft) i Kafka UI. Backend, serwis AI i frontend
-# dochodzą w etapie 5.
 #
-# Uruchomienie (z katalogu głównego repozytorium, wymaga pliku .env — wzór w .env.example):
-#   docker compose up -d
+# Cała platforma jednym poleceniem (z katalogu głównego repozytorium, wymaga pliku .env — wzór w .env.example;
+# klucze serwisu AI w backend-ai/.env):
+#   docker compose up -d --build
+#
+# Tylko infrastruktura (np. gdy backend uruchamiasz lokalnie z Pythona):
+#   docker compose up -d mysql kafka kafka-ui
+#
+# Adresy: frontend http://localhost:5173, API http://localhost:8000/docs, Kafka UI http://localhost:8090
 name: geomarket
 
+# Wspólne ustawienia kontenerów z obrazu backendu: adresy usług w sieci Compose zamiast localhost.
+x-backend: &backend
+  build:
+    context: ./backend
+  image: geomarket-backend
+  env_file: .env
+  environment:
+    MYSQL_HOST: mysql
+    MYSQL_PORT: "3306"
+    KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    AI_SERVICE_URL: http://backend-ai:8001
+    LAKEHOUSE_ROOT: /data/lakehouse
+  restart: unless-stopped
+
 services:
+  # ---------------------------------------------------------------- infrastruktura
   mysql:
     image: mysql:8.4
     restart: unless-stopped
@@ -75,6 +94,111 @@ services:
       kafka:
         condition: service_healthy
 
+  # ---------------------------------------------------------------- backend Sebastiana
+  # Migracje schematu MySQL — jednorazowo przed startem API.
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Bramka API (port 8000). --proxy-headers: za reverse proxy (np. nginx z SSL na VPS) adres klienta
+  # pochodzi z nagłówka X-Forwarded-For — ważne dla limitów zapytań per IP.
+  api:
+    <<: *backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000",
+              "--proxy-headers", "--forwarded-allow-ips", "${FORWARDED_ALLOW_IPS:-127.0.0.1}"]
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - lakehouse:/data/lakehouse
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Potok strumieniowy: Kafka → Delta Lake (Bronze/Silver/Gold).
+  consumer:
+    <<: *backend
+    command: ["python", "-m", "app.stream.consumer"]
+    volumes:
+      - lakehouse:/data/lakehouse
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # Potok strumieniowy: Yahoo Finance i CoinGecko → Kafka.
+  producer:
+    <<: *backend
+    command: ["python", "-m", "app.stream.producer"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # Jednorazowe załadowanie historii (60 dni świec godzinowych) przy każdym `up`.
+  # Bezpieczne do powtarzania: zapis w Lakehouse jest idempotentny.
+  backfill:
+    <<: *backend
+    command: ["python", "-m", "app.stream.backfill"]
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------- serwis AI Patryka
+  # Dostępny tylko z tego komputera (127.0.0.1) — przeglądarka łączy się wyłącznie z bramką (port 8000).
+  backend-ai:
+    build:
+      context: ./backend-ai
+      dockerfile: ../docker/backend-ai.Dockerfile
+    image: geomarket-backend-ai
+    restart: unless-stopped
+    env_file:
+      - path: backend-ai/.env
+        required: false
+    environment:
+      LAKEHOUSE_ROOT: /data/lakehouse
+    ports:
+      - "127.0.0.1:${AI_PORT:-8001}:8001"
+    volumes:
+      - lakehouse:/data/lakehouse
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------- frontend Kamila
+  # Pliki statyczne z nginx. Adres API jest wpisywany w czasie budowania (przeglądarka łączy się z localhost:8000).
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+      additional_contexts:
+        frontend-nginx: ./docker/frontend-nginx
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+        VITE_MARKET_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+        VITE_FAVORITES_PROVIDER: api
+    image: geomarket-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - api
+
 volumes:
   mysql_data:
   kafka_data:
+  # Wspólny Lakehouse: konsument i serwis AI piszą, API i serwis AI czytają.
+  lakehouse:
