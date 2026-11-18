@@ -1,0 +1,10 @@
+# Do obrazu trafia tylko to, co potrzebne do działania (kod, migracje, zależności).
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+tests
+docs
+perf
+docker
+README.md

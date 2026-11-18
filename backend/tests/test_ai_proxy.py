@@ -151,3 +151,23 @@ def test_ai_is_retried_after_breaker_pause(client, ai_service, monkeypatch):
     ai_service.down = False
     ai_service.respond("GET", "/stock/ai-impact", body=IMPACT)
     assert client.get("/stock/ai-impact").status_code == 200
+
+
+def test_cached_analysis_is_not_rate_limited_for_normal_frontend_use(client, ai_service, monkeypatch):
+    """Regresja: frontend (kilka komponentów + podwójne zapytania StrictMode) dostawał 429 po ok. 2 min."""
+    from app.core.rate_limit import limiter
+
+    monkeypatch.setattr(limiter, "enabled", True)
+    ai_service.respond("GET", "/stock/ai-impact", body=IMPACT)
+    statuses = {client.get("/stock/ai-impact").status_code for _ in range(60)}
+    assert statuses == {200}
+    assert len(ai_service.calls_to("/stock/ai-impact")) == 1  # 60 odpowiedzi, jedno wywołanie AI
+
+
+def test_chat_is_still_rate_limited(client, ai_service, monkeypatch):
+    from app.core.rate_limit import limiter
+
+    monkeypatch.setattr(limiter, "enabled", True)
+    ai_service.respond("POST", "/chat", body={"response": "x"})
+    statuses = [client.post("/chat", json={"message": "a"}).status_code for _ in range(16)]
+    assert statuses[:15] == [200] * 15 and statuses[15] == 429

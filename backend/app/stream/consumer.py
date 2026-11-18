@@ -150,6 +150,9 @@ def main() -> None:
     root.mkdir(parents=True, exist_ok=True)
     topics.ensure_topics(settings.kafka_bootstrap_servers)
     gold.update_dim_instrument(root, gold.utc_now())
+    # Kompaktowanie także przy starcie: przy częstych restartach konsumenta (praca lokalna)
+    # cykl godzinowy mógłby nigdy nie nadejść, a małe pliki spowalniają odczyty.
+    maintain(root)
 
     stopping = False
 

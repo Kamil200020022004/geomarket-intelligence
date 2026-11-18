@@ -151,3 +151,21 @@ def test_dashboard_cards_match_marketcard_props(client):
 )
 def test_polish_number_format(value, decimals, expected):
     assert service._format_pl(value, decimals) == expected
+
+
+def test_market_response_is_reused_within_cache_window(client, monkeypatch):
+    """Wydajność: w oknie MARKET_CACHE_SECONDS odpowiedź jest budowana raz (regresja testu obciążeniowego)."""
+    calls = {"n": 0}
+    original = service.list_stocks
+
+    def counting(source):
+        calls["n"] += 1
+        return original(source)
+
+    monkeypatch.setattr(service, "list_stocks", counting)
+    first = client.get("/api/stocks")
+    second = client.get("/api/stocks")
+    assert first.status_code == second.status_code == 200
+    assert first.content == second.content
+    assert first.headers["content-type"] == "application/json"
+    assert calls["n"] == 1
