@@ -1,6 +1,33 @@
 import { useEffect, useState } from "react"
-import { getTopCryptocurrencies } from "../api/aiApi"
 import useFavorites from "../hooks/useFavorites"
+
+const MARKET_API_URL = (
+  import.meta.env.VITE_MARKET_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "")
+
+// CoinGecko przekazuje image, ale przy brakującym obrazku korzystamy z ikon zastępczych.
+function CoinIcon({ coin, size = "small" }) {
+  const symbol = String(coin?.symbol || "").toLowerCase()
+  const imageUrl = coin?.image ||
+    (symbol ? `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${encodeURIComponent(symbol)}.png` : null)
+  const sizeClass = size === "large" ? "h-12 w-12" : "h-7 w-7"
+
+  return (
+    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-700 ${sizeClass}`}>
+      <span className="text-[10px] font-bold uppercase text-white">{symbol.slice(0, 3)}</span>
+      {imageUrl && (
+        <img
+          key={`${coin.id}-${imageUrl}`}
+          src={imageUrl}
+          alt={coin.name}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full rounded-full object-cover"
+          onError={(event) => { event.currentTarget.style.display = "none" }}
+        />
+      )}
+    </div>
+  )
+}
 
 function Crypto({ user, isLoggedIn, onLoginRequired }) {
   const [coins, setCoins] = useState([])
@@ -17,20 +44,44 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
+    let active = true
+    let controller = null
+
     async function loadCryptoData() {
+      controller?.abort()
+      controller = new AbortController()
+
       try {
-        const result = await getTopCryptocurrencies()
+        const response = await fetch(`${MARKET_API_URL}/api/crypto/top`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const result = await response.json()
+        if (!Array.isArray(result)) throw new Error("API nie zwróciło listy kryptowalut")
+        if (!active) return
+
         setCoins(result)
-        setSelectedCoin(result[0])
-      } catch (error) {
-        console.error(error)
+        setSelectedCoin((previous) =>
+          result.find((coin) => coin.id === previous?.id) || result[0] || null
+        )
+        setError(false)
+      } catch (err) {
+        if (!active || err.name === "AbortError") return
+        console.error("Błąd pobierania krypto z backendu Sebastiana:", err)
         setError(true)
       } finally {
-        setIsLoading(false)
+        if (active) setIsLoading(false)
       }
     }
 
     loadCryptoData()
+    const interval = setInterval(loadCryptoData, 60_000)
+
+    return () => {
+      active = false
+      clearInterval(interval)
+      controller?.abort()
+    }
   }, [])
 
   useEffect(() => {
@@ -115,7 +166,8 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
       ((price - minPrice) / Math.max(maxPrice - minPrice, 1)) * 100
 
     const hoursBack = sparklinePoints.length - 1 - index
-    const time = new Date(Date.now() - hoursBack * 60 * 60 * 1000)
+    const lastUpdate = selectedCoin?.updated_at ? new Date(selectedCoin.updated_at).getTime() : Date.now()
+    const time = new Date(lastUpdate - hoursBack * 60 * 60 * 1000)
 
     return {
       x,
@@ -204,7 +256,7 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
 
         {error && (
           <div className="rounded-3xl border border-red-500/30 bg-slate-900/80 p-6 text-red-400">
-            Nie udało się pobrać danych kryptowalut z internetu.
+            Nie udało się pobrać danych kryptowalut z backendu Sebastiana (port 8000).
           </div>
         )}
 
@@ -223,7 +275,7 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
                 </div>
 
                 <span className="rounded-full bg-orange-500/10 px-4 py-1 text-sm text-orange-400">
-                  Live market data
+                  Dane Lakehouse
                 </span>
               </div>
 
@@ -278,11 +330,7 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
 
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-3">
-                              <img
-                                src={coin.image}
-                                alt={coin.name}
-                                className="h-7 w-7 rounded-full"
-                              />
+                              <CoinIcon coin={coin} />
 
                               <div>
                                 <p className="font-semibold text-white">
@@ -331,11 +379,7 @@ function Crypto({ user, isLoggedIn, onLoginRequired }) {
                 <>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <img
-                        src={selectedCoin.image}
-                        alt={selectedCoin.name}
-                        className="h-12 w-12 rounded-full"
-                      />
+                      <CoinIcon coin={selectedCoin} size="large" />
 
                       <div>
                         <p className="text-sm text-cyan-400">

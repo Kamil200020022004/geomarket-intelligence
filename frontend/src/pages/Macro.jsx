@@ -1,187 +1,28 @@
 import { useEffect, useState } from "react"
 import useFavorites from "../hooks/useFavorites"
 
-const MACRO_DATA = [
-  // Waluty
-  {
-    symbol: "EUR/PLN",
-    name: "Euro / Polski złoty",
-    category: "Waluty",
-    value: 4.27,
-    change: 0.18,
-    unit: "PLN",
-    description: "Kurs euro względem polskiego złotego.",
-  },
-  {
-    symbol: "USD/PLN",
-    name: "Dolar amerykański / Polski złoty",
-    category: "Waluty",
-    value: 3.92,
-    change: -0.24,
-    unit: "PLN",
-    description: "Kurs dolara amerykańskiego względem polskiego złotego.",
-  },
-  {
-    symbol: "CHF/PLN",
-    name: "Frank szwajcarski / Polski złoty",
-    category: "Waluty",
-    value: 4.55,
-    change: 0.31,
-    unit: "PLN",
-    description: "Kurs franka szwajcarskiego względem polskiego złotego.",
-  },
-  {
-    symbol: "GBP/PLN",
-    name: "Funt brytyjski / Polski złoty",
-    category: "Waluty",
-    value: 5.02,
-    change: -0.12,
-    unit: "PLN",
-    description: "Kurs funta brytyjskiego względem polskiego złotego.",
-  },
-  {
-    symbol: "EUR/USD",
-    name: "Euro / Dolar amerykański",
-    category: "Waluty",
-    value: 1.09,
-    change: 0.07,
-    unit: "USD",
-    description: "Relacja euro do dolara amerykańskiego.",
-  },
+// Dane makroekonomiczne pochodzą z backendu Sebastiana (Delta Lake / źródła API).
+// Nie używamy lokalnych, fikcyjnych wartości ani generowanych wykresów.
+const MARKET_API_URL = (
+  import.meta.env.VITE_MARKET_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "")
 
-  // Inflacja
-  {
-    symbol: "CPI PL",
-    name: "Inflacja CPI Polska",
-    category: "Inflacja",
-    value: 4.2,
-    change: -0.3,
-    unit: "%",
-    description: "Wskaźnik wzrostu cen towarów i usług konsumpcyjnych w Polsce.",
-  },
-  {
-    symbol: "CPI USA",
-    name: "Inflacja CPI USA",
-    category: "Inflacja",
-    value: 3.1,
-    change: 0.2,
-    unit: "%",
-    description: "Wskaźnik inflacji konsumenckiej w Stanach Zjednoczonych.",
-  },
-  {
-    symbol: "CPI EU",
-    name: "Inflacja CPI Strefa Euro",
-    category: "Inflacja",
-    value: 2.6,
-    change: -0.1,
-    unit: "%",
-    description: "Inflacja konsumencka w krajach strefy euro.",
-  },
+function normalizeMacroItem(item) {
+  const history = Array.isArray(item.history)
+    ? item.history
+        .filter((point) => point && point.value !== null && point.value !== undefined && Number.isFinite(Number(point.value)))
+        .map((point) => ({
+          time: point.time ?? "",
+          value: Number(point.value),
+        }))
+    : []
 
-  // Stopy procentowe
-  {
-    symbol: "NBP RATE",
-    name: "Stopa referencyjna NBP",
-    category: "Stopy procentowe",
-    value: 5.75,
-    change: 0,
-    unit: "%",
-    description: "Główna stopa procentowa Narodowego Banku Polskiego.",
-  },
-  {
-    symbol: "FED RATE",
-    name: "Stopa procentowa FED",
-    category: "Stopy procentowe",
-    value: 5.25,
-    change: 0,
-    unit: "%",
-    description: "Przedział głównej stopy procentowej Rezerwy Federalnej USA.",
-  },
-  {
-    symbol: "ECB RATE",
-    name: "Stopa procentowa EBC",
-    category: "Stopy procentowe",
-    value: 4.5,
-    change: -0.25,
-    unit: "%",
-    description: "Główna stopa procentowa Europejskiego Banku Centralnego.",
-  },
-
-  // PKB
-  {
-    symbol: "GDP PL",
-    name: "PKB Polska",
-    category: "PKB",
-    value: 2.9,
-    change: 0.4,
-    unit: "%",
-    description: "Tempo wzrostu produktu krajowego brutto Polski.",
-  },
-  {
-    symbol: "GDP USA",
-    name: "PKB USA",
-    category: "PKB",
-    value: 2.5,
-    change: -0.1,
-    unit: "%",
-    description: "Tempo wzrostu produktu krajowego brutto Stanów Zjednoczonych.",
-  },
-  {
-    symbol: "GDP EU",
-    name: "PKB Strefa Euro",
-    category: "PKB",
-    value: 0.9,
-    change: 0.2,
-    unit: "%",
-    description: "Tempo wzrostu gospodarki strefy euro.",
-  },
-
-  // Surowce
-  {
-    symbol: "OIL",
-    name: "Ropa Brent",
-    category: "Surowce",
-    value: 82.4,
-    change: 1.36,
-    unit: "USD",
-    description: "Cena ropy Brent, istotna dla inflacji i kosztów energii.",
-  },
-  {
-    symbol: "GOLD",
-    name: "Złoto",
-    category: "Surowce",
-    value: 2385,
-    change: -0.44,
-    unit: "USD",
-    description: "Cena złota jako aktywa defensywnego.",
-  },
-  {
-    symbol: "GAS",
-    name: "Gaz ziemny",
-    category: "Surowce",
-    value: 2.31,
-    change: 2.18,
-    unit: "USD",
-    description: "Cena gazu ziemnego wpływająca na koszty energii.",
-  },
-]
-
-function generateHistory(baseValue, change) {
-  const points = []
-  const direction = change >= 0 ? 1 : -1
-
-  for (let index = 0; index < 48; index++) {
-    const wave = Math.sin(index / 5) * baseValue * 0.015
-    const trend = direction * index * baseValue * 0.0007
-    const noise = Math.cos(index / 3) * baseValue * 0.005
-
-    points.push({
-      time: `${index + 1}`,
-      value: Math.max(baseValue + wave + trend + noise, 0.01),
-    })
+  return {
+    ...item,
+    value: item.value === null || item.value === undefined ? null : Number(item.value),
+    change: item.change === null || item.change === undefined ? null : Number(item.change),
+    history,
   }
-
-  return points
 }
 
 function Macro({ user, isLoggedIn, onLoginRequired }) {
@@ -195,20 +36,52 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
 
   const [chartRange, setChartRange] = useState("1M")
   const [hoveredPoint, setHoveredPoint] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState("")
 
   useEffect(() => {
-    const preparedItems = MACRO_DATA.map((item) => ({
-      ...item,
-      history: generateHistory(item.value, item.change),
-    }))
+    const controller = new AbortController()
+    let active = true
 
-    const selectedSymbolFromUrl = new URLSearchParams(window.location.search).get("symbol")
-    const initialSelectedItem =
-      preparedItems.find((item) => item.symbol === selectedSymbolFromUrl) ||
-      preparedItems[0]
+    async function loadMacro() {
+      try {
+        const response = await fetch(`${MARKET_API_URL}/api/macro`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
-    setItems(preparedItems)
-    setSelectedItem(initialSelectedItem)
+        const result = await response.json()
+        if (!Array.isArray(result)) {
+          throw new Error("Nieoczekiwany format odpowiedzi API")
+        }
+
+        const fetchedItems = result.map(normalizeMacroItem)
+        if (!active) return
+
+        setItems(fetchedItems)
+        setSelectedItem((previous) => {
+          const symbolFromUrl = new URLSearchParams(window.location.search).get("symbol")
+          const symbol = previous?.symbol || symbolFromUrl
+          return fetchedItems.find((item) => item.symbol === symbol) || fetchedItems[0] || null
+        })
+        setFetchError("")
+      } catch (error) {
+        if (!active || error.name === "AbortError") return
+        console.error("Błąd pobierania danych makro z backendu:", error)
+        setFetchError("Nie udało się pobrać danych makroekonomicznych z backendu Sebastiana.")
+      } finally {
+        if (active) setIsLoading(false)
+      }
+    }
+
+    loadMacro()
+    const interval = setInterval(loadMacro, 120_000)
+
+    return () => {
+      active = false
+      clearInterval(interval)
+      controller.abort()
+    }
   }, [])
 
   useEffect(() => {
@@ -291,8 +164,8 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
   const getVisibleHistory = () => {
     const history = selectedItem?.history || []
 
-    if (chartRange === "1D") return history.slice(-12)
-    if (chartRange === "1W") return history.slice(-24)
+    if (chartRange === "1D") return history.slice(-24)
+    if (chartRange === "1W") return history.slice(-168)
 
     return history
   }
@@ -343,6 +216,21 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
 
   return (
     <main className="px-8 py-8">
+      {isLoading && (
+        <div className="mb-6 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-200">
+          Pobieranie rzeczywistych danych makroekonomicznych...
+        </div>
+      )}
+      {fetchError && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {fetchError} {items.length > 0 ? "Wyświetlane są ostatnio pobrane dane." : ""}
+        </div>
+      )}
+      {!isLoading && !fetchError && items.length === 0 && (
+        <div className="mb-6 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300">
+          Backend nie zwrócił żadnych wskaźników makroekonomicznych.
+        </div>
+      )}
       {favoritesError && (
         <div role="alert" className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {favoritesError}
@@ -599,7 +487,7 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
                       </p>
 
                       <p className="mt-1 font-semibold text-white">
-                        {formatValue(minValue, selectedItem.unit)}
+                        {historyPoints.length ? formatValue(minValue, selectedItem.unit) : "-"}
                       </p>
                     </div>
 
@@ -619,7 +507,7 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
                       </p>
 
                       <p className="mt-1 font-semibold text-white">
-                        {formatValue(maxValue, selectedItem.unit)}
+                        {historyPoints.length ? formatValue(maxValue, selectedItem.unit) : "-"}
                       </p>
                     </div>
                   </div>
@@ -716,9 +604,9 @@ function Macro({ user, isLoggedIn, onLoginRequired }) {
                         </svg>
 
                         <div className="absolute right-3 top-3 flex h-[calc(100%-24px)] flex-col justify-between text-xs text-slate-500">
-                          <span>{formatValue(maxValue, selectedItem.unit)}</span>
+                          <span>{historyPoints.length ? formatValue(maxValue, selectedItem.unit) : "-"}</span>
                           <span>{formatValue((maxValue + minValue) / 2, selectedItem.unit)}</span>
-                          <span>{formatValue(minValue, selectedItem.unit)}</span>
+                          <span>{historyPoints.length ? formatValue(minValue, selectedItem.unit) : "-"}</span>
                         </div>
 
                         {hoveredPoint && (

@@ -5,18 +5,24 @@ import {
   CalendarDays,
   Clock,
   Globe2,
-  RefreshCw,
   ShieldAlert,
 } from "lucide-react"
 import MarketCard from "../components/MarketCard"
-import markets from "../mock/markets.json"
 import { getStockAIImpact } from "../api/aiApi"
+
+// Dane rynkowe są pobierane z backendu Sebastiana, niezależnie od API Patryka.
+const MARKET_API_URL = (
+  import.meta.env.VITE_MARKET_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "")
 
 function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [aiImpact, setAiImpact] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [markets, setMarkets] = useState([])
+  const [marketsLoading, setMarketsLoading] = useState(true)
+  const [marketsError, setMarketsError] = useState("")
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -28,6 +34,46 @@ function Dashboard() {
 
   useEffect(() => {
     loadAIImpact()
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    let controller = null
+
+    async function loadMarkets() {
+      if (controller) controller.abort()
+      controller = new AbortController()
+      try {
+        const response = await fetch(`${MARKET_API_URL}/api/dashboard/markets`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        const data = await response.json()
+        if (!Array.isArray(data)) {
+          throw new Error("Nieprawidłowy format danych rynku")
+        }
+        if (active) {
+          setMarkets(data)
+          setMarketsError("")
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return
+        console.error("Błąd pobierania danych rynkowych:", err)
+        if (active) setMarketsError("Nie udało się zaktualizować danych rynkowych z backendu Sebastiana.")
+      } finally {
+        if (active) setMarketsLoading(false)
+      }
+    }
+
+    loadMarkets()
+    const refreshTimer = setInterval(loadMarkets, 120_000)
+    return () => {
+      active = false
+      clearInterval(refreshTimer)
+      if (controller) controller.abort()
+    }
   }, [])
 
   async function loadAIImpact() {
@@ -305,6 +351,17 @@ function Dashboard() {
           szybki podgląd sytuacji. Nie są częścią głównej analizy AI.
         </p>
 
+        {marketsLoading && markets.length === 0 && (
+          <p className="mb-4 text-sm text-slate-400">Pobieranie danych rynkowych...</p>
+        )}
+        {marketsError && (
+          <p role="alert" className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+            {marketsError}
+          </p>
+        )}
+        {!marketsLoading && !marketsError && markets.length === 0 && (
+          <p className="mb-4 text-sm text-slate-400">Brak danych rynkowych w API.</p>
+        )}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {markets.map((market) => (
             <MarketCard
