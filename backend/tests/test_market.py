@@ -46,7 +46,7 @@ def test_stocks_contract(client):
     assert response.status_code == 200
     stocks = response.json()
     assert isinstance(stocks, list)
-    assert len(stocks) == 100
+    assert len(stocks) == 98  # 100 ze StockMarket.jsx bez CCC i SPL (brak notowań w Yahoo)
     for stock in stocks:
         assert set(stock) == STOCK_FIELDS
         assert stock["market"] in {"Zagraniczny", "Polska"}
@@ -69,7 +69,8 @@ def test_catalog_maps_gpw_symbols_to_yahoo():
     assert catalog.BY_SYMBOL["PKN"].source_symbol == "PKN.WA"
     assert catalog.BY_SYMBOL["AAPL"].source_symbol == "AAPL"
     assert catalog.BY_SYMBOL["EUR/PLN"].source_symbol == "EURPLN=X"
-    assert len({i.symbol for i in catalog.STOCKS}) == 100  # brak duplikatów
+    assert len({i.symbol for i in catalog.STOCKS}) == 98  # brak duplikatów
+    assert not {"CCC", "SPL"} & set(catalog.BY_SYMBOL)  # usunięte decyzją z 25.11.2026
 
 
 # --- Kryptowaluty ---
