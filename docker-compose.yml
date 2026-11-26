@@ -189,7 +189,10 @@ services:
       args:
         VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
         VITE_MARKET_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+        VITE_AUTH_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+        VITE_AI_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
         VITE_FAVORITES_PROVIDER: api
+        VITE_RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
     image: geomarket-frontend
     restart: unless-stopped
     ports:
