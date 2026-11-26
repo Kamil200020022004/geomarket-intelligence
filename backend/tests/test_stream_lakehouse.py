@@ -187,7 +187,7 @@ def test_stocks_endpoint_reads_lakehouse(client, tmp_path):
     client.app.dependency_overrides[get_market_source] = lambda: LakehouseMarketData(tmp_path, 30, 0)
     stocks = {s["symbol"]: s for s in client.get("/api/stocks").json()}
     assert stocks["AAPL"]["price"] == 100.0 and stocks["AAPL"]["source"] == "lakehouse"
-    assert stocks["CCC"]["price"] is None and stocks["CCC"]["history"] == []  # niedostępny w Yahoo
+    assert stocks["PKN"]["price"] is None and stocks["PKN"]["history"] == []  # brak danych w Lakehouse → null
 
 
 def test_filtered_read_works_after_merge_rewrote_file(tmp_path):

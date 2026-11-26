@@ -111,7 +111,7 @@ def test_live_bars_one_message_per_instrument_keyed_by_symbol():
     assert producer.sent == 2
 
 
-def test_unavailable_symbols_are_not_requested_from_yahoo():
+def test_all_streamed_instruments_are_requested_and_unavailable_skipped():
     requested = {}
 
     def fetch(symbols, interval, **kwargs):
@@ -120,8 +120,8 @@ def test_unavailable_symbols_are_not_requested_from_yahoo():
 
     producer, _ = _producer(fetch_bars=fetch)
     producer.poll_live_bars()
-    assert "CCC.WA" not in requested["symbols"] and "SPL.WA" not in requested["symbols"]
-    assert len(requested["symbols"]) == len(catalog.STREAMED)
+    assert not set(requested["symbols"]) & catalog.UNAVAILABLE_SOURCE_SYMBOLS
+    assert len(requested["symbols"]) == len(catalog.STREAMED) == 107  # 98 spółek, 5 walut, 3 surowce, WIG20
 
 
 def test_coins_snapshot_is_one_message():

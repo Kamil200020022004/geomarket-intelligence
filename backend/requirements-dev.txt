@@ -4,3 +4,5 @@ pytest==9.2.0
 python-dotenv==1.2.4
 # Statyczna kontrola kodu (nieużywane importy, niezdefiniowane nazwy).
 pyflakes==4.1.0
+# Testy obciążeniowe API (perf/locustfile.py).
+locust==2.47.0
