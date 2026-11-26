@@ -17,7 +17,9 @@ from app.stream.producer import MarketProducer, make_kafka_producer
 pytestmark = pytest.mark.kafka
 
 BOOTSTRAP = get_settings().kafka_bootstrap_servers
-T0 = datetime(2026, 11, 17, 14, 0, tzinfo=UTC)
+# Czas względny: ostatnie ceny liczone są z ostatnich 8 dni (gold.LATEST_LOOKBACK), więc stała data
+# sprawiała, że test przestawał przechodzić tydzień po napisaniu (wykryte 25.11.2026).
+T0 = datetime.now(UTC).replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
 
 
 @pytest.fixture

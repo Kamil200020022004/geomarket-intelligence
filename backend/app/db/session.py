@@ -12,6 +12,12 @@ engine = create_engine(
     # Przed użyciem połączenia z puli sprawdza, czy nadal żyje (MySQL zamyka bezczynne połączenia).
     pool_pre_ping=True,
     pool_recycle=3600,
+    # FastAPI wykonuje trasy synchroniczne w puli do 40 wątków (AnyIO). Domyślna pula SQLAlchemy
+    # (5 + 10 zapasowych) przy 500 użytkownikach w teście obciążeniowym kończyła się błędem
+    # „QueuePool limit … reached” — wątki czekały na połączenie dłużej niż 30 s. 20 + 20 = 40
+    # połączeń odpowiada liczbie wątków (MySQL domyślnie przyjmuje 151 połączeń).
+    pool_size=20,
+    max_overflow=20,
 )
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)

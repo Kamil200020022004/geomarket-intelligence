@@ -4,7 +4,8 @@ Jedno miejsce, które mówi, CO pobieramy, skąd i pod jaką nazwą pokazujemy w
 - `symbol` — identyfikator w API i we frontendzie (np. `AAPL`, `PKN`, `EUR/PLN`, `OIL`),
 - `source_symbol` — symbol w źródle danych (Yahoo Finance: spółki GPW z sufiksem `.WA`, kursy `EURPLN=X`).
 
-Lista spółek = lista ze `StockMarket.jsx` (50 z USA i 50 z GPW), uzgodnione 16.11.2026.
+Lista spółek = lista ze `StockMarket.jsx` (50 z USA i 50 z GPW), uzgodnione 16.11.2026;
+25.11.2026 usunięte CCC i Santander Bank Polska (brak notowań z GPW w Yahoo Finance) — 98 spółek.
 Dostępność każdego symbolu w Yahoo Finance weryfikowana w etapie 3.
 """
 
@@ -89,9 +90,7 @@ _STOCKS: list[tuple[str, str, str]] = [
     ("DNP", "Dino Polska", "PL"),
     ("ALE", "Allegro", "PL"),
     ("LPP", "LPP", "PL"),
-    ("CCC", "CCC", "PL"),
     ("MBK", "mBank", "PL"),
-    ("SPL", "Santander Bank Polska", "PL"),
     ("ING", "ING Bank Śląski", "PL"),
     ("ALR", "Alior Bank", "PL"),
     ("OPL", "Orange Polska", "PL"),
@@ -171,10 +170,10 @@ BY_SYMBOL: dict[str, Instrument] = {instrument.symbol: instrument for instrument
 # więc nie jest wpisana na sztywno; identyfikatorem jest `id` CoinGecko (np. "bitcoin").
 CRYPTO_TOP_N = 100
 
-# Symbole bez notowań z GPW w Yahoo Finance (sprawdzone 17.11.2026): CCC jest dostępne tylko
-# na giełdzie w Stuttgarcie, Santander Bank Polska (obecnie Erste Bank Polska) — brak notowań z GPW.
-# Producent ich nie pobiera; API zwraca je bez ceny (null), dopóki zespół nie zdecyduje o liście.
-UNAVAILABLE_SOURCE_SYMBOLS: frozenset[str] = frozenset({"CCC.WA", "SPL.WA"})
+# Symbole z katalogu, których źródło nie notuje — producent ich nie pobiera, API zwraca je z ceną null.
+# 17.11.2026 były tu CCC.WA (CCC — w Yahoo tylko giełda w Stuttgarcie) i SPL.WA (Santander Bank Polska,
+# obecnie Erste Bank Polska — brak notowań z GPW); 25.11.2026 zespół zdecydował usunąć je z katalogu.
+UNAVAILABLE_SOURCE_SYMBOLS: frozenset[str] = frozenset()
 
 STREAMED: list[Instrument] = [i for i in ALL_YAHOO if i.source_symbol not in UNAVAILABLE_SOURCE_SYMBOLS]
 BY_SOURCE_SYMBOL: dict[str, Instrument] = {i.source_symbol: i for i in ALL_YAHOO}

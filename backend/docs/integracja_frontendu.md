@@ -34,7 +34,7 @@ Po stronie backendu adres frontendu musi być na liście `CORS_ORIGINS` (domyśl
 | `pages/Crypto.jsx` | Bez zmian — `getTopCryptocurrencies()` ma tę samą nazwę i format. |
 | `components/ChatDrawer.jsx`, `pages/News.jsx`, `components/AIImpactCard.jsx`, `components/LatestNewsCard.jsx` | Bez zmian w logice. |
 | `components/LoginDrawer.jsx`, `pages/ResetPassword.jsx`, `pages/News.jsx` | Domyślny adres (gdy brak `VITE_API_URL`) zmienić z `127.0.0.1:8001` na `127.0.0.1:8000`. |
-| `components/LoginDrawer.jsx` (rejestracja) | Gdy będzie widget reCAPTCHA: wysyłać token w polu `recaptcha_token` obok `name`, `email`, `password`. Odrzucona captcha → 400 z `detail`. |
+| `components/LoginDrawer.jsx` (rejestracja) | reCAPTCHA **v2** („Nie jestem robotem”, decyzja zespołu z 25.11.2026): token z widgetu wysyłać w polu `recaptcha_token` obok `name`, `email`, `password`. Klucz witryny (site key) we frontendzie, klucz tajny (secret) w `RECAPTCHA_SECRET_KEY` backendu. Odrzucona captcha → 400 z `detail`. |
 | obsługa błędów | Nowe kody: **429** (zbyt wiele prób, `detail` z komunikatem) i **503** (serwis AI niedostępny, `detail` z komunikatem). Wystarczy wyświetlić `detail`. |
 
 **Zakresy wykresów — prośba o zmianę.** Giełda i Makro: `history` to ceny zamknięcia świec godzinowych z ostatnich 30 dni, ale **tylko z godzin notowań** (spółki USA ok. 7 h dziennie, GPW ok. 8 h, waluty całą dobę w dni robocze). Obecne wycinki „ostatnie 12 / 24 punkty” nie odpowiadają więc 1 dniu / 1 tygodniowi. Proponuję filtrować po czasie: 1D = punkty z ostatnich 24 h od ostatniego punktu, 1W = 7 dni, 1M = cała seria, np. `history.filter(p => new Date(p.time) >= new Date(last.time) - 24 * 3600e3)`. Krypto: `sparkline_in_7d.price` to 168 punktów godzinowych z CoinGecko — obecne wycinki (2 / 24 / całość) są tam poprawne.
@@ -43,7 +43,7 @@ Po stronie backendu adres frontendu musi być na liście `CORS_ORIGINS` (domyśl
 
 | Metoda i ścieżka | Komponent | Odpowiedź |
 | --- | --- | --- |
-| `GET /api/stocks` | StockMarket | tablica 100 spółek |
+| `GET /api/stocks` | StockMarket | tablica 98 spółek (lista ze StockMarket.jsx bez CCC i SPL — brak notowań z GPW w Yahoo Finance, decyzja zespołu z 25.11.2026) |
 | `GET /api/crypto/top` | Crypto | tablica (format CoinGecko) |
 | `GET /api/macro` | Macro | tablica 17 pozycji |
 | `GET /api/dashboard/markets` | Dashboard | tablica 3 kafelków |
@@ -62,7 +62,7 @@ Po stronie backendu adres frontendu musi być na liście `CORS_ORIGINS` (domyśl
 | `symbol` | string | — | katalog (lista ze StockMarket.jsx) |
 | `name` | string | — | katalog |
 | `market` | string | `"Zagraniczny"` / `"Polska"` | katalog |
-| `price` | number / null | waluta notowania (`currency`); null dla CCC i SPL (brak notowań w Yahoo) | strumień |
+| `price` | number / null | waluta notowania (`currency`); null, gdy potok nie ma jeszcze danych | strumień |
 | `change` | number / null | % zmiany względem ceny sprzed 24 h | strumień |
 | `volume` | number / null | liczba akcji z ostatnich 24 h | strumień |
 | `marketCap` | number / null | waluta notowania (liczba akcji × cena) | strumień |

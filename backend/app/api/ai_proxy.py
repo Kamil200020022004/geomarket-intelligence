@@ -31,9 +31,13 @@ ERRORS = {
     503: {"description": "Serwis AI niedostępny i brak zapamiętanej odpowiedzi"},
 }
 
-CHAT_LIMIT = "15/minute"  # jak w serwisie AI
-NEWS_LIMIT = "30/minute"
-ANALYSIS_LIMIT = "20/minute"
+# Czat: każda wiadomość to wywołanie Gemini (bez cache) — limit jak w serwisie AI.
+CHAT_LIMIT = "15/minute"
+# Trasy GET są obsługiwane głównie z cache (bez kosztu Gemini), więc limit chroni tylko przed
+# nadużyciem. Limit 20/min był za niski: komponenty React wołają te same trasy z kilku miejsc,
+# a tryb deweloperski (StrictMode) podwaja zapytania — frontend dostawał 429 po ok. 2 minutach.
+NEWS_LIMIT = "120/minute"
+ANALYSIS_LIMIT = "120/minute"
 
 
 def _client_ip(request: Request) -> str | None:
