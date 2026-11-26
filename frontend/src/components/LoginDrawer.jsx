@@ -1,8 +1,9 @@
-import { useState } from "react"
-
+import { useRef, useState } from "react"
+import ReCAPTCHA from "react-google-recaptcha"
 const API_URL = (
   import.meta.env.VITE_AUTH_API_URL || "http://127.0.0.1:8000"
-).replace(/\/$/, "")
+).replace(/\/+$/, "")
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 
 const INITIAL_FORM = {
   name: "",
@@ -10,10 +11,8 @@ const INITIAL_FORM = {
   password: "",
   repeatPassword: "",
 }
-
 async function authRequest(endpoint, body) {
   let response
-
   try {
     response = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
@@ -27,85 +26,75 @@ async function authRequest(endpoint, body) {
       "Nie można nawiązać połączenia. Spróbuj ponownie za chwilę."
     )
   }
-
   const data = await response.json().catch(() => ({}))
-
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("Nieprawidłowy adres e-mail lub hasło.")
     }
-
     if (response.status === 409) {
       throw new Error("Konto z tym adresem już istnieje.")
     }
-
     if (response.status === 422) {
       throw new Error("Sprawdź poprawność wprowadzonych danych.")
     }
-
     throw new Error(
       typeof data.detail === "string"
         ? data.detail
         : `Wystąpił błąd serwera (${response.status}).`
     )
   }
-
   return data
 }
-
 function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
   const [mode, setMode] = useState("login")
   const [formData, setFormData] = useState(INITIAL_FORM)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
+  const [recaptchaToken, setRecaptchaToken] = useState(null)
+  const recaptchaRef = useRef(null)
 
+  function resetRecaptcha() {
+    recaptchaRef.current?.reset()
+    setRecaptchaToken(null)
+  }
   if (!isOpen) return null
-
   function handleChange(event) {
     const { name, value } = event.target
-
     setFormData((previous) => ({
       ...previous,
       [name]: value,
     }))
-
     setError("")
   }
-
   function switchMode(nextMode) {
     if (loading) return
-
+    resetRecaptcha()
     setMode(nextMode)
     setError("")
     setSuccess("")
     setFormData(INITIAL_FORM)
   }
-
   function handleClose() {
     if (loading) return
-
+    resetRecaptcha()
     setMode("login")
     setFormData(INITIAL_FORM)
     setError("")
     setSuccess("")
     onClose()
   }
-
   async function handleLogin(event) {
     event.preventDefault()
     if (loading) return
-
     setLoading(true)
     setError("")
     setSuccess("")
-
     try {
       const result = await authRequest("/auth/login", {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
       })
-
       await onLoginSuccess(result)
       setFormData(INITIAL_FORM)
       setMode("login")
@@ -115,77 +104,73 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
       setLoading(false)
     }
   }
-
   async function handleRegister(event) {
     event.preventDefault()
     if (loading) return
-
     const name = formData.name.trim()
     const email = formData.email.trim().toLowerCase()
-
     if (name.length < 2) {
       setError("Imię musi mieć co najmniej 2 znaki.")
       return
     }
-
     if (formData.password.length < 8) {
       setError("Hasło musi mieć co najmniej 8 znaków.")
       return
     }
-
     if (formData.password !== formData.repeatPassword) {
       setError("Hasła nie są identyczne.")
       return
     }
-
+    if (!RECAPTCHA_SITE_KEY) {
+      setError("Brak konfiguracji reCAPTCHA. Skontaktuj się z administratorem.")
+      return
+    }
+    if (!recaptchaToken) {
+      setError("Potwierdź, że nie jesteś robotem.")
+      return
+    }
     setLoading(true)
     setError("")
     setSuccess("")
-
     try {
       await authRequest("/auth/register", {
         name,
         email,
         password: formData.password,
+        recaptcha_token: recaptchaToken,
       })
-
+      resetRecaptcha()
       setMode("login")
       setFormData({
         ...INITIAL_FORM,
         email,
       })
-
       setSuccess(
         "Konto zostało utworzone. Możesz się zalogować."
       )
     } catch (err) {
+      resetRecaptcha()
       setError(err.message || "Nie udało się utworzyć konta.")
     } finally {
       setLoading(false)
     }
   }
-
   async function handleForgotPassword(event) {
     event.preventDefault()
     if (loading) return
-
     const email = formData.email.trim().toLowerCase()
-
     if (!email) {
       setError("Podaj adres e-mail.")
       return
     }
-
     setLoading(true)
     setError("")
     setSuccess("")
-
     try {
       const result = await authRequest(
         "/auth/forgot-password",
         { email }
       )
-
       setSuccess(
         result.message ||
         "Jeśli konto istnieje, wyślemy wiadomość z linkiem resetującym."
@@ -198,39 +183,31 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
       setLoading(false)
     }
   }
-
   const title =
     mode === "login"
       ? "Logowanie"
       : mode === "register"
         ? "Rejestracja"
         : "Reset hasła"
-
   const description =
     mode === "login"
       ? "Zaloguj się, aby uzyskać dostęp do ulubionych elementów."
       : mode === "register"
         ? "Utwórz konto, aby zapisywać instrumenty giełdowe, kryptowaluty i wskaźniki makroekonomiczne."
         : "Podaj adres e-mail przypisany do Twojego konta. Otrzymasz link do ustawienia nowego hasła."
-
   const inputClass =
     "mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400 disabled:opacity-50"
-
   const submitClass =
     "w-full rounded-xl bg-cyan-400 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
-
   const secondaryButtonClass =
     "w-full rounded-xl border border-slate-700 py-3 text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400"
-
   return (
     <div className="fixed inset-0 z-40 bg-black/60">
       <div className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto border-l border-slate-800 bg-slate-950 p-6 shadow-2xl shadow-cyan-950/30">
-
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">
             {title}
           </h2>
-
           <button
             type="button"
             onClick={handleClose}
@@ -241,11 +218,9 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             X
           </button>
         </div>
-
         <p className="mt-2 text-sm leading-6 text-slate-400">
           {description}
         </p>
-
         <div className="mt-6 flex rounded-full border border-slate-800 bg-slate-900 p-1">
           {[
             ["login", "Logowanie"],
@@ -267,7 +242,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             </button>
           ))}
         </div>
-
         {error && (
           <div
             role="alert"
@@ -276,7 +250,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             {error}
           </div>
         )}
-
         {success && (
           <div
             role="status"
@@ -285,14 +258,12 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             {success}
           </div>
         )}
-
         {mode === "login" && (
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div>
               <label htmlFor="login-email" className="text-sm text-slate-300">
                 E-mail
               </label>
-
               <input
                 id="login-email"
                 name="email"
@@ -306,12 +277,10 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <div>
               <label htmlFor="login-password" className="text-sm text-slate-300">
                 Hasło
               </label>
-
               <input
                 id="login-password"
                 name="password"
@@ -325,7 +294,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -333,7 +301,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             >
               {loading ? "Logowanie..." : "Zaloguj się"}
             </button>
-
             <button
               type="button"
               disabled={loading}
@@ -344,14 +311,12 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             </button>
           </form>
         )}
-
         {mode === "register" && (
           <form onSubmit={handleRegister} className="mt-6 space-y-4">
             <div>
               <label htmlFor="register-name" className="text-sm text-slate-300">
                 Imię
               </label>
-
               <input
                 id="register-name"
                 name="name"
@@ -366,12 +331,10 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <div>
               <label htmlFor="register-email" className="text-sm text-slate-300">
                 E-mail
               </label>
-
               <input
                 id="register-email"
                 name="email"
@@ -385,12 +348,10 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <div>
               <label htmlFor="register-password" className="text-sm text-slate-300">
                 Hasło
               </label>
-
               <input
                 id="register-password"
                 name="password"
@@ -405,12 +366,10 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <div>
               <label htmlFor="register-repeat-password" className="text-sm text-slate-300">
                 Powtórz hasło
               </label>
-
               <input
                 id="register-repeat-password"
                 name="repeatPassword"
@@ -425,21 +384,40 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <p className="text-xs leading-5 text-slate-500">
               Hasło powinno mieć co najmniej 8 znaków.
             </p>
-
+            <div className="flex justify-center">
+              {RECAPTCHA_SITE_KEY ? (
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={RECAPTCHA_SITE_KEY}
+                    theme="dark"
+                    onChange={(token) => {
+                      setRecaptchaToken(token)
+                      setError("")
+                    }}
+                    onExpired={() => setRecaptchaToken(null)}
+                    onErrored={() => {
+                      setRecaptchaToken(null)
+                      setError("Nie udało się załadować reCAPTCHA. Spróbuj ponownie.")
+                    }}
+                  />
+                ) : (
+                  <p className="text-sm text-red-400">
+                    Brak konfiguracji reCAPTCHA (VITE_RECAPTCHA_SITE_KEY).
+                  </p>
+                )}
+            </div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !recaptchaToken || !RECAPTCHA_SITE_KEY}
               className={submitClass}
             >
               {loading ? "Tworzenie konta..." : "Utwórz konto"}
             </button>
           </form>
         )}
-
         {mode === "reset" && (
           <form
             onSubmit={handleForgotPassword}
@@ -449,18 +427,15 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
               <h3 className="font-semibold text-cyan-300">
                 Odzyskiwanie hasła
               </h3>
-
               <p className="mt-2 text-sm leading-6 text-slate-400">
                 Wpisz swój adres e-mail. Jeśli konto istnieje,
                 wyślemy link do zmiany hasła, ważny przez 15 minut.
               </p>
             </div>
-
             <div>
               <label htmlFor="reset-email" className="text-sm text-slate-300">
                 Adres e-mail
               </label>
-
               <input
                 id="reset-email"
                 name="email"
@@ -474,7 +449,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
                 className={inputClass}
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -482,7 +456,6 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             >
               {loading ? "Wysyłanie..." : "Wyślij link resetujący"}
             </button>
-
             <button
               type="button"
               onClick={() => switchMode("login")}
@@ -493,22 +466,18 @@ function LoginDrawer({ isOpen, onClose, onLoginSuccess }) {
             </button>
           </form>
         )}
-
         <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <p className="text-sm font-semibold text-cyan-400">
             Twoje konto GeoMarket
           </p>
-
           <p className="mt-2 text-sm leading-6 text-slate-400">
             Korzystaj z własnej listy ulubionych instrumentów,
             zarządzaj kontem i odzyskuj dostęp do niego za pomocą
             adresu e-mail.
           </p>
         </div>
-
       </div>
     </div>
   )
 }
-
 export default LoginDrawer
